@@ -13,7 +13,7 @@ function [results] = hyperAceR(M, S)
 
 	[p, N] = size(M);
 
-	R = hyperCorr(M);
+	R =(M*M')/N;
     G=inv(R);
 
 	results = zeros(1, N);
