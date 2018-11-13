@@ -67,50 +67,78 @@ end Accelerator_Stage2;
 architecture Behavioral of Accelerator_Stage2 is
 	
 	
-	component dot_product is
-generic (
-bit_depth_1 : positive := 12;
-bit_depth_2 : positive := 32;
-P_BIT_WIDTH : positive := 48
- );
- Port (
- clk : in std_logic ;
- en : in std_logic ;
- reset_n : in std_logic ;
- in_1 : in std_logic_vector ( bit_depth_1 -1 downto 0);
- in_2 : in std_logic_vector ( bit_depth_2 -1 downto 0);
- v_len : in std_logic_vector (11 downto 0);
- p_rdy : out std_logic ;
- p : out std_logic_vector ( P_bit_width -1 downto 0)
- );
- end component; 
+	component dp_controller is
+	 Generic(
+		V_LEN: integer := 16
+	 );
+	 Port (
+		 clk    	: in std_logic ;
+		 en     	: in std_logic ;
+		 reset_n	: in std_logic ;
+		 p_rdy  	: out std_logic ;
+		 ripple 	: out std_logic
+	 );
+ end component ;
+ 
+ component  dp_datapath is
+	generic (
+		bit_depth_1 : positive := 12;
+		bit_depth_2 : positive := 32;
+		P_BIT_WIDTH : positive := 48
+	 );
+	 Port (
+		 clk 		: in std_logic ;
+		 en 		: in std_logic ;
+		 ripple 	: in std_logic;
+		 reset_n 	: in std_logic ;
+		 in_1 		: in std_logic_vector ( bit_depth_1 -1 downto 0);
+		 in_2 		: in std_logic_vector ( bit_depth_2 -1 downto 0);
+		 p 			: out std_logic_vector ( P_bit_width -1 downto 0)
+	 );
+ end component ;
+	
+ signal ripple: std_logic;
+	
  
 signal Stage2_DataSROut_delayed: std_logic_vector(ST2IN_DATA_WIDTH*2-1 downto 0);
  
 begin
 
 ----------------------------------------------------------------------------------	 
--- Dot product controller
+-- Dot product controller & datapath
 ----------------------------------------------------------------------------------	
-	datapath_MAC_inst: dot_product
+	
+	dp_controller_inst: dp_controller
+		generic map(
+			V_LEN => NUM_BANDS
+		)
+		port map(
+			clk      =>   CLK,    
+			en       =>   Stage2_Enable,     
+			reset_n  =>   RESETN,
+			p_rdy    =>   Stage2_DataValid,  
+			ripple   =>   ripple 
+		);
+		
+		dp_datapath_inst: dp_datapath
 		generic map (
 		bit_depth_1 => PIXEL_DATA_WIDTH,
 		bit_depth_2 => ST2IN_DATA_WIDTH,
-		P_BIT_WIDTH => ST2OUT_DATA_WIDTH
+		p_bit_width => ST2OUT_DATA_WIDTH
 		 )
 		 port map (
 		clk          =>  CLK,
-		en => Stage2_Enable,
+		en			 =>  Stage2_Enable,
+		ripple		 =>  ripple,
 		reset_n      =>	 RESETN,
 		in_1         =>	 Stage2_DataShReg,
 		in_2 		 =>  Stage2_DataIn,
-		v_len => std_logic_vector(to_unsigned(NUM_BANDS,12)),
-		p_rdy => Stage2_DataValid,
 		p 			 =>  Stage2_DataOut
 		 );
+	
 		 
 ------------------------------------------------------------------------------
---GENERATE STAGE 1 sTR^-1x MULTIPLIER SQUARE
+--GENERATE STAGE 2 sTR^-1x MULTIPLIER SQUARE
 ------------------------------------------------------------------------------		 
 process(CLK) is
 begin	

@@ -15,7 +15,7 @@ entity BRAM_WRAPPER is
 		--BRAM PARAMETERS
 		BRAM_DATA_WIDTH : integer := 32;
 		NUM_BANDS : integer := 16;
-		BRAM_ADDR_WIDTH: integer := integer(ceil(log2(real(NUM_BANDS))))
+		BRAM_ADDR_WIDTH: integer := 4 --integer(ceil(log2(real(NUM_BANDS))))
 	);
 	port (
 		-- Users to add ports here
@@ -65,7 +65,7 @@ architecture arch_imp of BRAM_WRAPPER is
 		--BRAM PARAMETERS
 		BRAM_DATA_WIDTH : integer := 32;
 		NUM_BANDS : integer := 16;
-		BRAM_ADDR_WIDTH: integer := integer(ceil(log2(real(NUM_BANDS))))
+		BRAM_ADDR_WIDTH: integer := 4--integer(ceil(log2(real(NUM_BANDS))))
 		);
 		port (
 		S_AXI_ACLK	: in std_logic;

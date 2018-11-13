@@ -73,10 +73,6 @@ begin
  STOP_PIPELINE <= stop_pipeline_temp;
  
 
- 
-
- 
-
  Input_Module : process(CLK) is
 	begin
 	 if (rising_edge(CLK)) then

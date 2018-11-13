@@ -4,7 +4,7 @@
 -- 
 -- Create Date: 31.10.2018 23:55:07
 -- Design Name: 
--- Module Name: toptop - Behavioral
+-- Module Name: TopLevel_wrapper - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -24,14 +24,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
+use IEEE.NUMERIC_STD.ALL;
+use ieee.math_real.all;
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity toptop is
+entity TopLevel_wrapper is
 generic(
 		PIXEL_DATA_WIDTH : positive := 12;
 		BRAM_DATA_WIDTH: positive := 16;
@@ -62,9 +62,9 @@ generic(
 		ROW_SELECT 		: out std_logic_vector   (BRAM_ADDR_WIDTH-1 downto 0);
 		STATIC_VECTOR_SR: in std_logic_vector (BRAM_DATA_WIDTH-1 downto 0)
   );
-end toptop;
+end TopLevel_wrapper;
 
-architecture Behavioral of toptop is
+architecture Behavioral of TopLevel_wrapper is
 
 component TopLevel_Accelerator is
 	generic(
@@ -74,8 +74,8 @@ component TopLevel_Accelerator is
 		NUM_BANDS : positive := 16;
 		PACKET_SIZE: positive :=16;
 		OUT_DATA_WIDTH : positive:= 32; 
-		BRAM_ADDR_WIDTH: integer := integer(ceil(log2(real(NUM_BANDS))));
-		BRAM_ROW_WIDTH: positive :=BRAM_DATA_WIDTH*(2**BRAM_ADDR_WIDTH)
+		BRAM_ADDR_WIDTH: integer :=4; --integer(ceil(log2(real(NUM_BANDS))));
+		BRAM_ROW_WIDTH: positive := 512--BRAM_DATA_WIDTH*(2**BRAM_ADDR_WIDTH)
 	);
   Port (
   
@@ -100,7 +100,7 @@ component TopLevel_Accelerator is
 end component;
 begin
 
-instabc: TopLevel_Accelerator
+TopLevel_inst: TopLevel_Accelerator
  generic map(
  PIXEL_DATA_WIDTH   =>      PIXEL_DATA_WIDTH   ,
  BRAM_DATA_WIDTH    =>     BRAM_DATA_WIDTH,
