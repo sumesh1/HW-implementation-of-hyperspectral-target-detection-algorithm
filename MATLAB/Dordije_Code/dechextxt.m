@@ -1,12 +1,11 @@
-k=magic(16);
 garr=[];
-for i=1: 200
-    garr=[garr,typecast(M(:,i),'uint16')];
+for i=1: length(vect32)
+    garr=[garr,typecast(vect32(:,i),'uint32')];
 end
-a=dec2hex(garr,4);
-fid = fopen('cube.txt','w');
+a=dec2hex(garr,8);
+fid = fopen('vect.txt','w');
 
-for i=1:length(a)
+for i=1:length(vect32)
 fprintf(fid,'%s\n',a(i,:));
 end
 fclose(fid);

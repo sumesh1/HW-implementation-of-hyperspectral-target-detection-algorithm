@@ -240,7 +240,7 @@ begin
 
 	DATA_OUT_VALID     <= Stage2_DataValid;
 	DATA1_OUT          <= Stage2_DataOut(ST2OUT_DATA_WIDTH - 2 downto ST2OUT_DATA_WIDTH - DATA1_OUT'length - 1);
-	DATA2_OUT          <= std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));--Stage2_DataSROut (ST2IN_DATA_WIDTH*2-2 downto ST2IN_DATA_WIDTH*2-DATA2_OUT'length-1);
+	DATA2_OUT          <= Stage2_DataSROut(35 downto 4);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));--Stage2_DataSROut (ST2IN_DATA_WIDTH*2-2 downto ST2IN_DATA_WIDTH*2-DATA2_OUT'length-1);
 	----------------------------------------------------------------------------------	 
 	--BRAM CORRELATION MATRIX ROW SELECTION  
 	----------------------------------------------------------------------------------   
