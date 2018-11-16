@@ -136,8 +136,11 @@ architecture arch_imp of AXI_BRAM is
 	signal VEC_r_addr          : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal VEC_w_addr          : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal VEC_din             : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
-	signal VEC_dout            : std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+	signal VEC_dout            : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
 
+	signal DEBUG_SELECT		   : std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+	signal DEBUG			   : std_logic;
+	
 	component BRAM is
 		generic (
 			SIZE       : integer := 16;
@@ -416,16 +419,16 @@ begin
 	-- and the slave is ready to accept the read address.
 	slv_reg_rden <= axi_arready and S_AXI_ARVALID and (not axi_rvalid);
 
-	process (slv_reg0, slv_reg1, slv_reg2, slv_reg3, axi_araddr, S_AXI_ARESETN, slv_reg_rden)
+	process (slv_reg0, slv_reg1, slv_reg2, slv_reg3, dout, VEC_dout, axi_araddr, S_AXI_ARESETN, slv_reg_rden)
 		variable loc_addr : std_logic_vector(OPT_MEM_ADDR_BITS downto 0);
 	begin
 		-- Address decoding for reading registers
 		loc_addr := axi_araddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
 		case loc_addr is
 			when b"00" =>
-				reg_data_out <= slv_reg0;
+				reg_data_out <= dout(BRAM_DATA_WIDTH-1 downto 0);
 			when b"01" =>
-				reg_data_out <= slv_reg1;
+				reg_data_out <= VEC_dout;
 			when b"10" =>
 				reg_data_out <= slv_reg2;
 			when b"11" =>
@@ -469,12 +472,14 @@ begin
 	end process;
 
 	--MATRIX 
-	r_addr           <= ROW_SELECT;
+	r_addr           <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
 	MATRIX_ROW       <= dout;
 
 	--VECTOR
-	VEC_r_addr       <= ROW_SELECT;
+	VEC_r_addr       <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
 	STATIC_VECTOR_SR <= VEC_dout;
+	
+	
 	process (S_AXI_ACLK) is
 		variable matrix_count : integer := 0;
 		variable vector_count : integer := 0;
@@ -488,6 +493,8 @@ begin
 				VEC_we     <= (others     => '0');
 				VEC_w_addr <= (others => '0');
 				VEC_din    <= (others    => '0');
+				DEBUG_SELECT<= (others => '0');
+				DEBUG	   <= '0';
 				matrix_count := 1;
 				vector_count := 1;
 			else
@@ -525,6 +532,21 @@ begin
 
 				else
 					VEC_we <= (others => '0');
+				end if;
+				
+				--DEBUG
+				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"10") then
+
+					DEBUG_SELECT    <= slv_reg2;
+
+				end if;
+				
+				
+				
+				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"11") then
+
+					DEBUG    <= slv_reg3(0);
+
 				end if;
 
 			end if;
