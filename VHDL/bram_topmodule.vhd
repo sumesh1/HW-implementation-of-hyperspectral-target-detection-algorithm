@@ -495,7 +495,7 @@ begin
 				VEC_din    <= (others    => '0');
 				DEBUG_SELECT<= (others => '0');
 				DEBUG	   <= '0';
-				matrix_count := 1;
+				matrix_count := 0;
 				vector_count := 1;
 			else
 
@@ -504,10 +504,10 @@ begin
 
 					din <= slv_reg0;
 
-					if (matrix_count = 1) then
+					if (matrix_count = 0) then
 						we      <= std_logic_vector(to_unsigned(1, we'length));
 						we_last <= std_logic_vector(to_unsigned(1, we'length));
-					elsif (matrix_count mod 16 = 0) then
+					elsif (matrix_count mod NUM_BANDS = 0) then
 						w_addr  <= std_logic_vector(unsigned(w_addr) + 1);
 						we      <= std_logic_vector(to_unsigned(1, we'length));
 						we_last <= std_logic_vector(to_unsigned(1, we'length));

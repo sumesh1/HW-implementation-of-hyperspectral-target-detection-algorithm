@@ -38,14 +38,14 @@ architecture Behavioral of tbdot is
 	constant bit_depth_1 : integer := 32;
 	constant bit_depth_2 : integer := 32;
 	constant P_BIT_WIDTH : integer := 64;
+	constant V_LEN		 : integer := 4;
 
 	signal clk           : std_logic;
 	signal en            : std_logic;
-	signal resetn        : std_logic;
+	signal reset_n        : std_logic;
 
 	signal in_1          : std_logic_vector (bit_depth_1 - 1 downto 0);
 	signal in_2          : std_logic_vector (bit_depth_2 - 1 downto 0);
-	signal v_len         : std_logic_vector (11 downto 0);
 	signal p_rdy         : std_logic;
 	signal ripple        : std_logic;
 	signal p             : std_logic_vector (P_bit_width - 1 downto 0);
@@ -53,42 +53,41 @@ architecture Behavioral of tbdot is
 
 begin
 
-	----------------------------------------------------------------------------------	 
-	-- Dot product controller
-	----------------------------------------------------------------------------------	
-	dot_product_controller_inst : entity WORK.dp_controller(Behavioral)
-		port map(
-			clk     => clk,
-			en      => en,
-			reset_n => resetn,
-			v_len   => v_len,
-			p_rdy   => p_rdy,
-			ripple  => ripple
-		);
-	----------------------------------------------------------------------------------	 
-	-- Dot product datapaths
-	----------------------------------------------------------------------------------	
-	datapath_MAC_inst : entity WORK.dp_datapath(Behavioral)
-		generic map(
-			bit_depth_1 => bit_depth_1,
-			bit_depth_2 => bit_depth_2,
-			P_BIT_WIDTH => P_BIT_WIDTH
-		)
-		port map(
-			clk     => clk,
-			en      => en,
-			ripple  => ripple,
-			reset_n => resetn,
-			in_1    => in_1,
-			in_2    => in_2,
-			p       => p
+	dp_controller_INST: entity work.dp_controller
+   generic map (
+      V_LEN => V_LEN)
+   port map (
+      clk     => clk,
+      en      => en,
+      reset_n => reset_n,
+      p_rdy   => p_rdy,
+      ripple  => ripple);
 
-		);
+	
+	dp_datapath_INST: entity work.dp_datapath
+   generic map (
+      bit_depth_1 => bit_depth_1,
+      bit_depth_2 => bit_depth_2,
+      P_BIT_WIDTH => P_BIT_WIDTH)
+   port map (
+      clk     => clk,
+      en      => en,
+      ripple  => ripple,
+      reset_n => reset_n,
+      in_1    => in_1,
+      in_2    => in_2,
+      p       => p);
+
+
+
+	
+	
+	
 	process is
 	begin
-		resetn <= '0';
+		reset_n <= '0';
 		wait for 50 NS;
-		resetn <= '1';
+		reset_n <= '1';
 		wait;
 	end process;
 
@@ -104,7 +103,7 @@ begin
 
 	begin
 		if (rising_edge(CLK)) then
-			if (resetn = '0') then
+			if (reset_n = '0') then
 				en  <= '0';
 				cnt <= 0;
 			elsif (cnt < 5) then
@@ -113,7 +112,7 @@ begin
 			elsif (cnt > 12 and cnt < 14) then
 				cnt <= cnt + 1;
 				en  <= '0';
-			elsif (cnt > 23 and cnt < 27) then
+			elsif (cnt > 16 and cnt < 20) then
 				cnt <= cnt + 1;
 				en  <= '0';
 
@@ -127,7 +126,7 @@ begin
 	process is
 	begin
 		wait until CLK'event and CLK = '1';
-		if (resetn = '0') then
+		if (reset_n = '0') then
 			in_1 <= std_logic_vector(to_unsigned(0, 32));
 		elsif (en = '1') then
 			in_1 <= std_logic_vector(unsigned(in_1) + 1);
@@ -145,11 +144,6 @@ begin
 		wait;
 	end process;
 
-	process is
-	begin
-		v_len <= std_logic_vector(to_unsigned(4, 12));
-		wait for 500 NS;
-		wait;
-	end process;
+
 	
 end architecture;

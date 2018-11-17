@@ -58,17 +58,14 @@ architecture Behavioral of MasterOutput is
 	signal read_vectors          : natural range 0 to PACKET_SIZE - 1;
 	signal written_vectors       : natural range 0 to PACKET_SIZE - 1;
 	signal tlast                 : std_logic;
-	signal Write_Outputs_Delayed : std_logic;
 	signal Full                  : std_logic;
 	signal stop_pipeline_temp    : std_logic;
 
 begin
 
 	M_AXIS_TLAST       <= tlast;
-	--M_AXIS_TVALID      <= '1' when (Write_Outputs_Delayed = '1') else '0';
-	stop_pipeline_temp <= '1' when (FULL = '1' and M_AXIS_TREADY = '0') else '0';
+	stop_pipeline_temp <= '1' when (state = Write_Outputs and M_AXIS_TREADY = '0') else '0';
 	STOP_PIPELINE      <= stop_pipeline_temp;
-	
 	
 	Input_Module : process (CLK) is
 	begin
@@ -85,53 +82,77 @@ begin
 					Output_Array (read_vectors) <= DATA_IN;
 					
 					if (read_vectors = PACKET_SIZE - 1) then
+						
 						read_vectors <= 0;
 						Full         <= '1';
+						
 					else
+					
 						read_vectors <= read_vectors + 1;
+						Full <= '0';
+						
 					end if;
-				end if;
-				
-				if (tlast = '1') then
-					Full <= '0';
-				end if;
+					
+				end if;	
 				
 			end if;
 		end if;
 	end process Input_Module;
 	
-		Output_Module : process (CLK) is
+	
+	Output_Module : process (CLK) is
 	begin
 		if (rising_edge(CLK)) then
 			if (RESETN = '0') then
 				tlast           <= '0';
 				written_vectors <= 0;
+				state <= Idle;
+				M_AXIS_TVALID 	<= '0';
 				
 			else
 			
-				if (Full = '1' and M_AXIS_TREADY = '1' ) then
+				case state is
 				
-					M_AXIS_TDATA    <= Output_Array (written_vectors);
-					M_AXIS_TVALID <= '1';
-					
-					if (M_AXIS_TREADY = '1') then 
-					
-						if (written_vectors = PACKET_SIZE - 1) then
+					when Idle =>
 						
-							tlast           <= '1';
-							written_vectors <= 0;
+						tlast           <= '0';
 						
-						else
+						if (Full = '1') then
 							
-							tlast 			<= '0';
+							state 			<= Write_Outputs;
+							M_AXIS_TVALID 	<= '1';
+							M_AXIS_TDATA    <= Output_Array (written_vectors);
 							written_vectors <= written_vectors + 1;
+						
+						else 
+						
+							M_AXIS_TVALID 	<= '0';
 							
 						end if;
+					
+					when Write_Outputs =>
 						
-					end if;	
-				
-				end if;				
-				
+						if( M_AXIS_TREADY = '1') then 
+							
+							M_AXIS_TDATA    <= Output_Array (written_vectors);
+							
+							if (written_vectors = PACKET_SIZE - 1) then
+								
+								state 			<= Idle;
+								tlast           <= '1';
+								written_vectors <= 0;
+							
+							else
+								
+								tlast 			<= '0';
+								written_vectors <= written_vectors + 1;
+								
+							end if;	
+							
+						end if;
+					
+				end case;
+		
 			end if;
 		end if;
 
@@ -139,104 +160,5 @@ begin
 	end process Output_Module;
 	
 	
-	
-	
-	-- Output_Module : process (CLK) is
-	-- begin
-		-- if (rising_edge(CLK)) then
-			-- if (RESETN = '0') then
-				-- tlast                 <= '0';
-				-- written_vectors       <= 0;
-				-- Write_Outputs_Delayed <= '0';
-				-- state                 <= Idle;
-			-- else
-				-- case state is
-					-- when Idle =>
-						-- Write_Outputs_Delayed <= '0';
-						-- tlast                 <= '0';
-						-- if (Full = '1') then
-							-- state                 <= Write_Outputs;
-							-- Write_Outputs_Delayed <= '1';
-							-- M_AXIS_TDATA          <= Output_Array (written_vectors);
-							-- written_vectors       <= written_vectors + 1;
-						-- end if;
-
-					-- when Write_Outputs =>
-						-- Write_Outputs_Delayed <= '1';
-						-- --M_AXIS_TDATA <= Output_Array (written_vectors);
-						-- if (M_AXIS_TREADY = '1') then
-							-- if (written_vectors = PACKET_SIZE - 1) then
-								-- M_AXIS_TDATA    <= Output_Array (written_vectors);
-								-- tlast           <= '1';
-								-- written_vectors <= 0;
-								-- state           <= Idle;
-							-- else
-								-- M_AXIS_TDATA    <= Output_Array (written_vectors);
-								-- written_vectors <= written_vectors + 1;
-							-- end if;
-						-- end if;
-				-- end case;
-			-- end if;
-		-- end if;
-
-
-	-- end process Output_Module;
-
-
-	-- Output_Module : process (CLK) is
-	-- begin 
-	-- if (rising_edge(CLK)) then     
-	-- if (RESETN = '0') then               
-	-- tlast        <= '0';
-	-- written_vectors <= 0;
-	-- Write_Outputs_Delayed <= '0';
-	-- state <= Idle;
-	-- read_vectors <= 0;
-	-- Full <= '0';
-	-- Output_Array <= (others =>(others=> '0'));
-	-- else
-	-- case state is
-	-- when Idle =>
-	-- Write_Outputs_Delayed <= '0';
-	-- tlast<= '0';
-	-- if (Full = '1') then
-	-- state <= Write_Outputs;
-	-- Write_Outputs_Delayed <= '1';
-	-- M_AXIS_TDATA <= Output_Array (written_vectors);
-	-- written_vectors <= written_vectors + 1;
-	-- end if;
-
-	-- when Write_Outputs =>
-	-- Write_Outputs_Delayed <= '1';
-	-- --M_AXIS_TDATA <= Output_Array (written_vectors);
-	-- if (M_AXIS_TREADY = '1') then
-	-- if( written_vectors = PACKET_SIZE-1) then
-	-- M_AXIS_TDATA <= Output_Array (written_vectors);
-	-- tlast <= '1';
-	-- written_vectors <= 0;
-	-- state <= Idle;
-	-- else
-	-- M_AXIS_TDATA <= Output_Array (written_vectors);
-	-- written_vectors <= written_vectors + 1;
-	-- end if;	
-	-- end if; 
-	-- end case;
-	-- --INPUT PART
-	-- if(DATA_IN_VALID = '1' and stop_pipeline_temp = '0') then
-	-- Output_Array (read_vectors) <= DATA_IN;
-
-	-- if (read_vectors = PACKET_SIZE-1) then
-	-- read_vectors <= 0;
-	-- Full <= '1';
-	-- else 
-	-- read_vectors <= read_vectors + 1;
-	-- end if;
-	-- end if;
-
-	-- end if;
-	-- end if;	
-
-
-	-- end process Output_Module;
 
 end architecture Behavioral;

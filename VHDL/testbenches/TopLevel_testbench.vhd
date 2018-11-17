@@ -193,6 +193,7 @@ begin
 		variable v_ILINE : line;
 		variable v_data  : std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 		variable v_SPACE : character;
+		variable temp    : std_logic_vector(31 downto 0);
 
 	begin
 		count <= 0;
@@ -211,11 +212,15 @@ begin
 
 			-- Pass the variable to a signal to allow the ripple-carry to use it
 			if (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
-				S_AXIS_TDATA <= v_data;
+				--temp := std_logic_vector (signed (v_data) * 2);
+				--S_AXIS_TDATA <= temp (15 downto 0);
+					S_AXIS_TDATA <= v_data;
 
 			else
 				wait until (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1');
 				wait until CLK = '1' and CLK'event;
+				--temp := std_logic_vector (signed (v_data) * 2);
+				--S_AXIS_TDATA <= temp (15 downto 0);
 				S_AXIS_TDATA <= v_data;
 			end if;
 			count <= count + 1;
