@@ -125,7 +125,6 @@ architecture arch_imp of AXI_BRAM is
 
 	--CORR MATRIX BRAM SIGNALS
 	signal we                  : std_logic_vector(NUM_BANDS - 1 downto 0);
-	signal we_last             : std_logic_vector(NUM_BANDS - 1 downto 0);
 	signal r_addr              : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal w_addr              : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal din                 : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
@@ -461,13 +460,19 @@ begin
 	process (S_AXI_ACLK) is
 	begin
 		if (rising_edge (S_AXI_ACLK)) then
+		
 			if (S_AXI_ARESETN = '0') then
+			
 				slv_reg_wren_dly <= '0';
 				axi_awaddr_dly   <= (others => '0');
+				
 			else
+			
 				axi_awaddr_dly   <= axi_awaddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
 				slv_reg_wren_dly <= slv_reg_wren;
+				
 			end if;
+			
 		end if;
 	end process;
 
@@ -486,8 +491,8 @@ begin
 	begin
 		if (rising_edge (S_AXI_ACLK)) then
 			if (S_AXI_ARESETN = '0') then
+			
 				we         <= (others         => '0');
-				we_last    <= (others    => '0');
 				w_addr     <= (others     => '0');
 				din        <= (others        => '0');
 				VEC_we     <= (others     => '0');
@@ -497,6 +502,7 @@ begin
 				DEBUG	   <= '0';
 				matrix_count := 0;
 				vector_count := 1;
+				
 			else
 
 				--MATRIX
@@ -505,21 +511,26 @@ begin
 					din <= slv_reg0;
 
 					if (matrix_count = 0) then
+					
 						we      <= std_logic_vector(to_unsigned(1, we'length));
-						we_last <= std_logic_vector(to_unsigned(1, we'length));
+
 					elsif (matrix_count mod NUM_BANDS = 0) then
+					
 						w_addr  <= std_logic_vector(unsigned(w_addr) + 1);
 						we      <= std_logic_vector(to_unsigned(1, we'length));
-						we_last <= std_logic_vector(to_unsigned(1, we'length));
+						
 					else
-						we      <= std_logic_vector(unsigned(we_last) sll 1);
-						we_last <= std_logic_vector(unsigned(we_last) sll 1);
+					
+						we      <= std_logic_vector(unsigned(we) sll 1);
+					
 					end if;
 
 					matrix_count := matrix_count + 1;
 
 				else
+				
 					we <= (others => '0');
+					
 				end if;
 
 				--VECTOR
@@ -531,7 +542,9 @@ begin
 					vector_count := vector_count + 1;
 
 				else
+				
 					VEC_we <= (others => '0');
+					
 				end if;
 				
 				--DEBUG
