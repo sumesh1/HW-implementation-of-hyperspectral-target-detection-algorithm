@@ -32,11 +32,11 @@ use ieee.math_real.all;
 entity TopLevel_wrapper is
 	generic
 	(
-		PIXEL_DATA_WIDTH : positive := 12;
-		BRAM_DATA_WIDTH  : positive := 16;
-		ST2IN_DATA_WIDTH : positive := 16;
-		NUM_BANDS        : positive := 8;
-		PACKET_SIZE      : positive := 4;
+		PIXEL_DATA_WIDTH : positive := 16;
+		BRAM_DATA_WIDTH  : positive := 32;
+		ST2IN_DATA_WIDTH : positive := 32;
+		NUM_BANDS        : positive := 16;
+		PACKET_SIZE      : positive := 16;
 		OUT_DATA_WIDTH   : positive := 32;
 		BRAM_ADDR_WIDTH  : integer  := 4;--integer(ceil(log2(real(NUM_BANDS))));
 		BRAM_ROW_WIDTH   : positive := 512--BRAM_DATA_WIDTH*(2**BRAM_ADDR_WIDTH)

@@ -100,10 +100,10 @@ extern void xil_printf(const char *format, ...);
 static void Uart550_Setup(void);
 #endif
 
-static int ReceiveData(u32* array, int Length);
+static int ReceiveData(s32* array, int Length);
 static void TxIntrHandler(void *Callback);
 static void RxIntrHandler(void *Callback);
-static int main_DMA(u32* array,u32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS);
+static int main_DMA(s32* array,s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS);
 static int setup_DMA(void);
 
 
@@ -196,7 +196,7 @@ u32 stop_timer (u8 TmrCtrNumber ){
 * @note		None.
 *
 ******************************************************************************/
-static int ReceiveData(u32* array, int Length)
+static int ReceiveData(s32* array, int Length)
 {
 
 	Xil_DCacheInvalidateRange((UINTPTR)array, Length);
@@ -552,7 +552,7 @@ static int setup_DMA(void)
 		return XST_SUCCESS;
 }
 
-static int main_DMA(u32 * array, u32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS)
+static int main_DMA(s32 * array, s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS)
 {
 	int Status;
 	int Tries = NUMBER_OF_TRANSFERS;

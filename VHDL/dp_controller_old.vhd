@@ -17,12 +17,12 @@ end dp_controller;
 
 architecture Behavioral of dp_controller is
 
-	signal counter : integer range 0 to V_LEN + 3;
+	signal counter : integer range 0 to V_LEN + 2;
 	signal out_rdy : std_logic;
 
 begin
 
-	out_rdy <= '1' when (counter = (V_LEN + 2) and en = '1') else '0';
+	out_rdy <= '1' when (counter = (V_LEN + 1) and en = '1') else '0';
 	ripple  <= out_rdy;
 	p_rdy   <= out_rdy;
 
@@ -33,8 +33,8 @@ begin
 				counter <= 0;
 			elsif (en = '1') then
 
-				if (counter = (V_LEN + 2)) then
-					counter <= 3;
+				if (counter = (V_LEN + 1)) then
+					counter <= 2;
 				else
 					counter <= counter + 1;
 				end if;

@@ -94,7 +94,7 @@ architecture Behavioral of Accelerator is
 	end component;
 	--Data types
 	-- type OutputsType is array (0 to NUM_BANDS-1) of std_logic_vector(DATA_WIDTH-1 downto 0);
-	type SHR is array (0 to NUM_BANDS + 1) of std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
+	type SHR is array (0 to NUM_BANDS + 1 + 1 ) of std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 
 	--Shift register
 	signal ShReg              : SHR;
@@ -163,7 +163,7 @@ begin
 		Stage2_Enable    => Stage2_Enable,
 		Stage2_DataIn    => Stage2_DataIn,
 		Stage2_DataSRIn  => Stage2_DataSRIn,
-		Stage2_DataShReg => ShReg (NUM_BANDS + 1),
+		Stage2_DataShReg => ShReg (NUM_BANDS + 2),
 		Stage2_DataValid => Stage2_DataValid,
 		Stage2_DataOut   => Stage2_DataOut,
 		Stage2_DataSROut => Stage2_DataSROut
@@ -179,7 +179,7 @@ begin
 				ShReg <= ((others => (others => '0')));
 			else
 				if (Stage1_Enable = '1') then
-					ShReg <= S_AXIS_TDATA & ShReg (0 to NUM_BANDS);
+					ShReg <= S_AXIS_TDATA & ShReg (0 to NUM_BANDS + 1);
 				end if;
 			end if;
 		end if;
@@ -240,7 +240,7 @@ begin
 
 	DATA_OUT_VALID     <= Stage2_DataValid;
 	DATA1_OUT          <= Stage2_DataOut(ST2OUT_DATA_WIDTH - 2 downto ST2OUT_DATA_WIDTH - DATA1_OUT'length - 1);
-	DATA2_OUT          <= Stage2_DataSROut(35 downto 4);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));--Stage2_DataSROut (ST2IN_DATA_WIDTH*2-2 downto ST2IN_DATA_WIDTH*2-DATA2_OUT'length-1);
+	DATA2_OUT          <= Stage2_DataSROut(50-1 downto 50-32);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));--Stage2_DataSROut (ST2IN_DATA_WIDTH*2-2 downto ST2IN_DATA_WIDTH*2-DATA2_OUT'length-1);
 	----------------------------------------------------------------------------------	 
 	--BRAM CORRELATION MATRIX ROW SELECTION  
 	----------------------------------------------------------------------------------   

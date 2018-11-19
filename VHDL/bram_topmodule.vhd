@@ -501,7 +501,7 @@ begin
 				DEBUG_SELECT<= (others => '0');
 				DEBUG	   <= '0';
 				matrix_count := 0;
-				vector_count := 1;
+				vector_count := 0;
 				
 			else
 
@@ -538,7 +538,13 @@ begin
 
 					VEC_din    <= slv_reg1;
 					VEC_we     <= (others => '1');
-					VEC_w_addr <= std_logic_vector(unsigned(VEC_w_addr) + 1);
+					
+					if(vector_count /= 0) then
+					
+						VEC_w_addr <= std_logic_vector(unsigned(VEC_w_addr) + 1);
+				
+					end if;
+					
 					vector_count := vector_count + 1;
 
 				else

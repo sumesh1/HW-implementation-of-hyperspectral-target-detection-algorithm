@@ -212,16 +212,16 @@ begin
 
 			-- Pass the variable to a signal to allow the ripple-carry to use it
 			if (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
-				--temp := std_logic_vector (signed (v_data) * 2);
-				--S_AXIS_TDATA <= temp (15 downto 0);
-					S_AXIS_TDATA <= v_data;
+				temp := std_logic_vector (signed (v_data) * 2);
+				S_AXIS_TDATA <= temp (15 downto 0);
+					--S_AXIS_TDATA <= v_data;
 
 			else
 				wait until (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1');
 				wait until CLK = '1' and CLK'event;
-				--temp := std_logic_vector (signed (v_data) * 2);
-				--S_AXIS_TDATA <= temp (15 downto 0);
-				S_AXIS_TDATA <= v_data;
+				temp := std_logic_vector (signed (v_data) * 2);
+				S_AXIS_TDATA <= temp (15 downto 0);
+				--S_AXIS_TDATA <= v_data;
 			end if;
 			count <= count + 1;
 			wait until CLK = '1' and CLK'event;

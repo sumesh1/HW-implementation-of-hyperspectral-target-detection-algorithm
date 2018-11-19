@@ -21,11 +21,9 @@ end dp_datapath;
 
 architecture Behavioral of dp_datapath is
 
-	signal mul_r 	: std_logic_vector ((bit_depth_1 + bit_depth_2 - 1) downto 0);
-	signal add_r 	: std_logic_vector ((P_BIT_WIDTH - 1) downto 0);
-	signal in_1_reg	: std_logic_vector (bit_depth_1 - 1 downto 0);
-	signal in_2_reg	: std_logic_vector (bit_depth_2 - 1 downto 0);
-	
+	signal mul_r : std_logic_vector ((bit_depth_1 + bit_depth_2 - 1) downto 0);
+	signal add_r : std_logic_vector ((P_BIT_WIDTH - 1) downto 0);
+
 begin
 
 	p <= add_r;--std_logic_vector ( resize ( signed ( add_r ),p' length ));
@@ -34,31 +32,18 @@ begin
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then
-				
-				mul_r 		<= (others => '0');
-				add_r 		<= (others => '0');
-				in_1_reg	<= (others => '0');
-				in_2_reg	<= (others => '0');	
-				
+				mul_r <= (others => '0');
+				add_r <= (others => '0');
 			elsif (en = '1') then
-				
-				--first pipeline stage regs
-				in_1_reg <= in_1;
-				in_2_reg <= in_2;
-				
 				-- Calculate multiplication between RAW and G.
-				mul_r <= std_logic_vector (signed (in_1_reg) * signed (in_2_reg));
-				
+				mul_r <= std_logic_vector (signed (in_1) * signed (in_2));
 				if (ripple = '1') then
 					-- Initially set accumulator reg to first multiplication between RAW and G
 					add_r <= std_logic_vector (resize(signed (mul_r), add_r'length));
-				
 				else
 					-- Accumulutator reg set to current multiplication between RAW and G added with acummulated result
 					add_r <= std_logic_vector (signed (mul_r) + signed (add_r));--std_logic_vector ( resize ( signed ( mul_r )+ signed ( add_r ),add_r ' length ));
-				
 				end if;
-				
 			end if;
 		end if;
 
