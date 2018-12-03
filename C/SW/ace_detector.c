@@ -206,12 +206,13 @@ void hyperCorr (datatype *m, double (*R)[N_bands], int NB, int NP, int percent)
 
 	for(p=0; p<NP; p=p+jump)
 	{
-		k=NB*p;
+		k = NB*p;
+		
 		for (i=0; i<NB; i++)
 		{
 			for (j=0; j<NB; j++)
 			{
-				R[i][j]=R[i][j]+((double)m[k+i]*m[k+j]/divisor);
+				R[i][j] = R[i][j] + ((double)m[k+i]*m[k+j]/divisor);
 			}
 		}
 	}
