@@ -4,9 +4,9 @@ use ieee . numeric_std . all;
 
 entity dp_datapath is
 	generic (
-		bit_depth_1 : positive := 12;
+		bit_depth_1 : positive := 16;
 		bit_depth_2 : positive := 32;
-		P_BIT_WIDTH : positive := 48
+		P_BIT_WIDTH : positive := 52
 	);
 	port (
 		clk     : in std_logic;

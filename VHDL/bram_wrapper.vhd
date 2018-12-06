@@ -9,11 +9,11 @@ entity BRAM_WRAPPER is
 	generic (
 
 		-- Parameters of Axi Slave Bus Interface S00_AXI
-		C_S00_AXI_DATA_WIDTH : integer := 32;
+		C_S00_AXI_DATA_WIDTH : integer := 25;
 		C_S00_AXI_ADDR_WIDTH : integer := 4;
 
 		--BRAM PARAMETERS
-		BRAM_DATA_WIDTH      : integer := 32;
+		BRAM_DATA_WIDTH      : integer := 25;
 		NUM_BANDS            : integer := 16;
 		BRAM_ADDR_WIDTH      : integer := 4 --integer(ceil(log2(real(NUM_BANDS))))
 	);

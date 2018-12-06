@@ -41,7 +41,7 @@ entity Accelerator_Stage1 is
 	generic (
 		PIXEL_DATA_WIDTH  : positive := 16;
 		BRAM_DATA_WIDTH   : positive := 32;
-		ST1OUT_DATA_WIDTH : positive := 50;
+		ST1OUT_DATA_WIDTH : positive := 52;
 		NUM_BANDS         : positive := 16
 	);
 	port (

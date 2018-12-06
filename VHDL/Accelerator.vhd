@@ -21,13 +21,13 @@ use work.my_types_pkg.all;
 
 entity Accelerator is
 	generic (
-		PIXEL_DATA_WIDTH  : positive := 16;
-		BRAM_DATA_WIDTH   : positive := 16;
-		ST1OUT_DATA_WIDTH : positive := 16;
-		ST2IN_DATA_WIDTH  : positive := 16;
-		ST2OUT_DATA_WIDTH : positive := 16;
-		OUT_DATA_WIDTH    : positive := 16;
-		NUM_BANDS         : positive := 8;
+		PIXEL_DATA_WIDTH  : positive := 18;
+		BRAM_DATA_WIDTH   : positive := 25;
+		ST1OUT_DATA_WIDTH : positive := 48;
+		ST2IN_DATA_WIDTH  : positive := 25;
+		ST2OUT_DATA_WIDTH : positive := 48;
+		OUT_DATA_WIDTH    : positive := 32;
+		NUM_BANDS         : positive := 16;
 		BRAM_ADDR_WIDTH   : integer  := 4
 	);
 	port (

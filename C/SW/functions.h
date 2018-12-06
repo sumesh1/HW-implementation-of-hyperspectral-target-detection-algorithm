@@ -31,6 +31,7 @@ int constrained_energy_minimization ();
 int spectral_angle_mapper ();
 
 double scalarProduct (double*, datatype*, int);
+double scalarProduct2 (datatype* a, datatype* b, int N);
 int FfsSd(char*, datatype * );
 int FfsSdWrite (char*, double *);
 int read_data(char*, datatype * );
@@ -44,4 +45,4 @@ void arrayMatrixProduct(int, datatype *, double [][N_bands], double *);
 void GaussJordan (int size, double R[size][size], double B[size][size]);
 int ACE(double);
 int CEM(double sRs);
-double SAM (datatype *x, datatype *s, u64 target_product, int N);
+double SAM (datatype *x, datatype *s, double target_product, int N);

@@ -7,9 +7,9 @@
 
 FIL fil;		/* File object */
 FATFS fatfs;
-char HyperMatrixFile[32] = "image.bin";
-char ResultsFile[32] = "results.bin";
-char TargetFile[32] = "target.bin";
+char HyperMatrixFile[32] = image_file_name;
+char ResultsFile[32] = results_file_name;
+char TargetFile[32] = target_file_name;
 char *SD_File;
 u32 Platform;
 
@@ -37,7 +37,7 @@ int adaptive_cosine_estimator (){
 	printf("Started calculating R...\n");
 #endif
 
-	hyperCorr (HyperData, R,  N_bands, N_pixels, 2);
+	hyperCorr (HyperData, R,  N_bands, N_pixels, corr_percent);
 
 #ifdef DEBUG
 	printf("%f %f %f \n", R[0][0], R[0][1], R[0][2]);
@@ -90,7 +90,7 @@ int constrained_energy_minimization (){
 	printf("Started calculating R...\n");
 #endif
 
-	hyperCorr (HyperData, R,  N_bands, N_pixels, 2);
+	hyperCorr (HyperData, R,  N_bands, N_pixels, corr_percent);
 
 #ifdef DEBUG
 	printf("%f %f %f \n", R[0][0], R[0][1], R[0][2]);
@@ -144,7 +144,7 @@ int spectral_angle_mapper (){
 #endif
 
 	//prepare s'*s
-	double target_product = scalarProduct(target, target, N_bands);
+	double target_product = scalarProduct2(target, target, N_bands);
 
 	//CALCULATE SPECTRAL ANGLE FOR ALL PIXELS
 	for(int i = 0; i < N_pixels; i++)
@@ -152,11 +152,10 @@ int spectral_angle_mapper (){
 			value = SAM(HyperData + i * N_bands, target, target_product, N_bands);
 			result[i] = value;
 
-			if(value > threshold)
-				detected = detected + 1;
-			/*printf("target detected\n");
-			else
-			printf("not a target \n");*/
+#ifdef DEBUG
+			if(value>threshold)
+				detected=detected+1;
+#endif
 		}
 
 	return detected;
@@ -182,13 +181,10 @@ int ACE(double sRs)
 			//detection statistic
 			value = temp1 / temp2;
 			result[i] = value;
-
-			// if(value>threshold)
-			// 		detected=detected+1;
-			/*		printf("target detected\n");
-
-			else
-				printf("not a target \n");*/
+#ifdef DEBUG
+			if(value>threshold)
+				detected=detected+1;
+#endif
 		}
 
 	return detected;
@@ -212,12 +208,10 @@ int CEM(double sRs)
 			value = temp1 / sRs;
 			result[i] = value;
 
-			if(value > threshold)
-				detected = detected + 1;
-			/*		printf("target detected\n");
-
-			else
-				printf("not a target \n");*/
+#ifdef DEBUG
+			if(value>threshold)
+				detected=detected+1;
+#endif
 		}
 
 	return detected;
@@ -225,7 +219,7 @@ int CEM(double sRs)
 
 /*****************************************************************************/
 
-double SAM (datatype *x, datatype *s, u64 target_product, int N)
+double SAM (datatype *x, datatype *s, double target_product, int N)
 {
 
 	// double sx=(double)scalarProduct(s,x,N);
@@ -272,6 +266,21 @@ void hyperCorr (datatype *m, double (*R)[N_bands], int NB, int NP, int percent)
 
 // SCALAR PRODUCT OF TWO VECTORS a AND b WITH LENGTH N
 double scalarProduct (double* a, datatype* b, int N)
+{
+	int i;
+	double sum = 0;
+	for (i = 0; i < N; i++)
+		{
+			sum += (double)b[i] * a[i];
+		}
+
+	return sum;
+}
+
+/*****************************************************************************/
+
+// SCALAR PRODUCT OF TWO VECTORS a AND b WITH LENGTH N
+double scalarProduct2 (datatype* a, datatype* b, int N)
 {
 	int i;
 	double sum = 0;
@@ -418,6 +427,7 @@ int FfsSd(char* File_Name, datatype* OutputArray)
 
 	if (Res != FR_OK)
 		{
+		xil_printf("cannot mount \n");
 			return XST_FAILURE;
 		}
 
@@ -426,6 +436,7 @@ int FfsSd(char* File_Name, datatype* OutputArray)
 	Res = f_open(&fil, SD_File,  FA_READ);
 	if (Res)
 		{
+		xil_printf("cannot open file \n");
 			return XST_FAILURE;
 		}
 
@@ -436,6 +447,7 @@ int FfsSd(char* File_Name, datatype* OutputArray)
 	Res = f_lseek(&fil, 0);
 	if (Res)
 		{
+		xil_printf("no file by that name \n");
 			return XST_FAILURE;
 		}
 

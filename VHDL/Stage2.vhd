@@ -39,8 +39,8 @@ entity Accelerator_Stage2 is
 	generic (
 		PIXEL_DATA_WIDTH  : positive := 16;
 		ST2IN_DATA_WIDTH  : positive := 32;
-		ST2OUT_DATA_WIDTH : positive := 48;
-		NUM_BANDS         : positive := 8
+		ST2OUT_DATA_WIDTH : positive := 52;
+		NUM_BANDS         : positive := 16
 	);
 	port (
 		CLK              : in std_logic;
