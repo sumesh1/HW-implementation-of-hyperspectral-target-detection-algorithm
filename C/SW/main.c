@@ -54,12 +54,14 @@ int main()
 	XTime_GetTime(&tEnd);
 
 	//from system timer
-	printf("t=%15.5lf sec\n", (long double)((tEnd - tStart) * 2) / (long double)XPAR_PS7_CORTEXA9_0_CPU_CLK_FREQ_HZ);
+	printf("t =%15.5lf sec\n", (long double)((tEnd - tStart) * 2) / (long double)XPAR_PS7_CORTEXA9_0_CPU_CLK_FREQ_HZ);
 	printf("Output took %llu clock cycles.\n", 2 * (tEnd - tStart));
 	printf("Output took %.2f us.\n", 1.0 * (tEnd - tStart) / (COUNTS_PER_SECOND / 1000000));
+
+#ifdef DEBUG
 	printf("We had %d detected target pixels which is %f percent. \n",
 	       detected, 100 * (double)detected / (double)N_pixels);
-
+#endif
 
 	cleanup_platform();
 	return 0;

@@ -82,7 +82,9 @@ entity AXI_BRAM is
 		--SELECTION OF ROW
 		ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 		--STATIC VECTOR OUT
-		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		--STATIC NUMBER sR^-1s
+		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 	);
 end AXI_BRAM;
 
@@ -136,6 +138,9 @@ architecture arch_imp of AXI_BRAM is
 	signal VEC_w_addr          : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal VEC_din             : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
 	signal VEC_dout            : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
+	
+	--STATIC NUMBER sR^-1s
+	signal STAT_sRs            : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
 
 	signal DEBUG_SELECT		   : std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
 	signal DEBUG			   : std_logic;
@@ -484,6 +489,8 @@ begin
 	VEC_r_addr       <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
 	STATIC_VECTOR_SR <= VEC_dout;
 	
+	--STATIC NUMBER sR^-1s
+	STATIC_SRS		 <= STAT_sRs;
 	
 	process (S_AXI_ACLK) is
 		variable matrix_count : integer := 0;
@@ -553,10 +560,16 @@ begin
 					
 				end if;
 				
-				--DEBUG
+				--DEBUG and sRs number
 				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"10") then
-
+					
 					DEBUG_SELECT    <= slv_reg2;
+					
+					if(DEBUG = '0') then
+					
+						STAT_sRs	<= slv_reg2;
+						
+					end if;
 
 				end if;
 				

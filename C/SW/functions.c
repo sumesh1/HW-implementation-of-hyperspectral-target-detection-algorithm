@@ -246,6 +246,7 @@ void hyperCorr (datatype *m, double (*R)[N_bands], int NB, int NP, int percent)
 	int jump = (int)(100 / percent);
 
 #ifdef DEBUG
+	printf("The divisor is %d\n", divisor);
 	printf("The jump is %d\n", jump);
 #endif
 
