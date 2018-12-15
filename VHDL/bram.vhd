@@ -30,16 +30,26 @@ architecture behavioral of BRAM is
 	signal RAM : ram_type := (others => (others => '0'));
 
 begin
+
 	process (clk)
 	begin
+		
 		if rising_edge(clk) then
+			
 			dout <= RAM (conv_integer(r_addr));
+			
 			for i in 0 to NB_COL - 1 loop
+				
 				if we(i) = '1' then
+				
 					RAM (conv_integer(w_addr))((i + 1) * COL_WIDTH - 1 downto i * COL_WIDTH) <= din;
+				
 				end if;
+				
 			end loop;
+		
 		end if;
+		
 	end process;
 
 end behavioral;

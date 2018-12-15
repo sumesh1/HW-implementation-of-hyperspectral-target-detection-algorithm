@@ -95,7 +95,8 @@ architecture Behavioral of TopLevel_Accelerator is
 			M_AXIS_TDATA  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
 			M_AXIS_TLAST  : out std_logic;
 			M_AXIS_TREADY : in std_logic;
-			STOP_PIPELINE : out std_logic
+			STOP_PIPELINE : out std_logic;
+			LAST_PIXEL	  : in std_logic
 		);
 	end component;
 
@@ -154,7 +155,8 @@ begin
 		M_AXIS_TDATA  => M1_AXIS_TDATA,
 		M_AXIS_TLAST  => M1_AXIS_TLAST,
 		M_AXIS_TREADY => M1_AXIS_TREADY,
-		STOP_PIPELINE => STOP1_PIPELINE
+		STOP_PIPELINE => STOP1_PIPELINE,
+		LAST_PIXEL    => S_AXIS_TLAST
 	);
 
 	MasterOutput2_Inst : MasterOutput
@@ -172,7 +174,8 @@ begin
 		M_AXIS_TDATA  => M2_AXIS_TDATA,
 		M_AXIS_TLAST  => M2_AXIS_TLAST,
 		M_AXIS_TREADY => M2_AXIS_TREADY,
-		STOP_PIPELINE => STOP2_PIPELINE
+		STOP_PIPELINE => STOP2_PIPELINE,
+		LAST_PIXEL    => S_AXIS_TLAST
 	);
 	
 	

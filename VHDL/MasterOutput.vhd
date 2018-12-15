@@ -43,7 +43,8 @@ entity MasterOutput is
 		M_AXIS_TDATA  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
 		M_AXIS_TLAST  : out std_logic;
 		M_AXIS_TREADY : in std_logic;
-		STOP_PIPELINE : out std_logic
+		STOP_PIPELINE : out std_logic;
+		LAST_PIXEL	  : in std_logic
 	);
 end MasterOutput;
 
@@ -60,12 +61,33 @@ architecture Behavioral of MasterOutput is
 	signal tlast                 : std_logic;
 	signal Full                  : std_logic;
 	signal stop_pipeline_temp    : std_logic;
+	signal end_signal			 : std_logic;
 
 begin
 
-	M_AXIS_TLAST       <= tlast;
+	M_AXIS_TLAST       <= tlast and end_signal;
 	stop_pipeline_temp <= '1' when (state = Write_Outputs and M_AXIS_TREADY = '0') else '0';
 	STOP_PIPELINE      <= stop_pipeline_temp;
+	
+	
+	process(CLK) is
+	begin
+		if( rising_edge(CLK)) then
+			if(RESETN = '0') then
+			
+				end_signal <= '0';
+				
+			else
+			
+				if( end_signal = '0') then
+					end_signal <= LAST_PIXEL;
+				end if;
+			
+			end if;
+			
+		end if;
+	end process;
+	
 	
 	Input_Module : process (CLK) is
 	begin
@@ -92,7 +114,11 @@ begin
 						Full <= '0';
 						
 					end if;
+				
+				else 
 					
+					Full <= '0';
+				
 				end if;	
 				
 			end if;

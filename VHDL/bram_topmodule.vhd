@@ -82,9 +82,9 @@ entity AXI_BRAM is
 		--SELECTION OF ROW
 		ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 		--STATIC VECTOR OUT
-		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 		--STATIC NUMBER sR^-1s
-		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		--STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 	);
 end AXI_BRAM;
 
@@ -490,7 +490,7 @@ begin
 	STATIC_VECTOR_SR <= VEC_dout;
 	
 	--STATIC NUMBER sR^-1s
-	STATIC_SRS		 <= STAT_sRs;
+	--STATIC_SRS		 <= STAT_sRs;
 	
 	process (S_AXI_ACLK) is
 		variable matrix_count : integer := 0;

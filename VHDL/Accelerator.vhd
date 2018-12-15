@@ -100,11 +100,13 @@ architecture Behavioral of Accelerator is
 	signal ShReg              : SHR;
 
 	--Stage 1 signals
+	signal Stage1_DataIn	  : std_logic_vector (PIXEL_DATA_WIDTH - 1 downto 0);
 	signal Stage1_Enable      : std_logic;
 	signal Stage1_DataValid   : std_logic;
 	signal Stage1_DataOut     : data_array (0 to NUM_BANDS - 1)(ST1OUT_DATA_WIDTH - 1 downto 0);
 	signal Stage1_Repacked    : data_array (0 to NUM_BANDS - 1)(ST2IN_DATA_WIDTH - 1 downto 0);
 	signal Stage1_DataSROut   : std_logic_vector (ST1OUT_DATA_WIDTH - 1 downto 0);
+	
 	--Stage 2 signals
 	signal Stage2_Enable      : std_logic;
 	signal Stage2_DataValid   : std_logic;
@@ -118,6 +120,9 @@ architecture Behavioral of Accelerator is
 	-- TLAST signal
 	signal tlast              : std_logic;
 	signal S_AXIS_TREADY_temp : std_logic;
+	
+	--STOPPED
+	signal tstopped			  : std_logic;
 
 	-- BRAM
 	signal corr_row_sel       : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
@@ -140,7 +145,7 @@ begin
 		CLK                => CLK,
 		RESETN             => RESETN,
 		Stage1_Enable      => Stage1_Enable,
-		Stage1_DataIn      => S_AXIS_TDATA,
+		Stage1_DataIn      => Stage1_DataIn,
 		Stage1_DataValid   => Stage1_DataValid,
 		Stage1_DataOut     => Stage1_DataOut,
 		Stage1_DataSROut   => Stage1_DataSROut,
@@ -179,7 +184,7 @@ begin
 				ShReg <= ((others => (others => '0')));
 			else
 				if (Stage1_Enable = '1') then
-					ShReg <= S_AXIS_TDATA & ShReg (0 to NUM_BANDS + 1);
+					ShReg <= Stage1_DataIn & ShReg (0 to NUM_BANDS + 1);
 				end if;
 			end if;
 		end if;
@@ -191,8 +196,8 @@ begin
 	----------------------------------------------------------------------------------
 	repack : for i in 0 to NUM_BANDS - 1 generate
 		--Stage1_Repacked (i) <= Stage1_DataOut (i)(ST1OUT_DATA_WIDTH-2-BRAM_ADDR_WIDTH downto ST1OUT_DATA_WIDTH-ST2IN_DATA_WIDTH-1-BRAM_ADDR_WIDTH);
-		--Stage1_Repacked (i) <= Stage1_DataOut (i)(ST1OUT_DATA_WIDTH-2 downto ST1OUT_DATA_WIDTH-ST2IN_DATA_WIDTH-1);
-		Stage1_Repacked (i) <= Stage1_DataOut (i)(41 downto 41 - ST2IN_DATA_WIDTH - 1 + 2);
+		Stage1_Repacked (i) <= Stage1_DataOut (i)(ST1OUT_DATA_WIDTH-2 downto ST1OUT_DATA_WIDTH-ST2IN_DATA_WIDTH-1);
+		--Stage1_Repacked (i) <= Stage1_DataOut (i)(41 downto 41 - ST2IN_DATA_WIDTH - 1 + 2);
 	end generate;
 
 	Stage2_DataIn <= Stage2_DataIn_All (Stage2_Count);
@@ -229,18 +234,20 @@ begin
 		end if;
 
 	end process Stage2;
+	
 	----------------------------------------------------------------------------------	 
 	--AXI PROTOCOL    
 	----------------------------------------------------------------------------------
 
-	Stage1_Enable      <= '0' when STOP_PIPELINE = '1' else (S_AXIS_TVALID and S_AXIS_TREADY_temp);
+	--Stage1_Enable      <= '0' when STOP_PIPELINE = '1' else (S_AXIS_TVALID and S_AXIS_TREADY_temp);
 
 	S_AXIS_TREADY_temp <= '0' when STOP_PIPELINE = '1' else '1';
 	S_AXIS_TREADY      <= S_AXIS_TREADY_temp;
 
 	DATA_OUT_VALID     <= Stage2_DataValid;
 	DATA1_OUT          <= Stage2_DataOut(ST2OUT_DATA_WIDTH - 2 downto ST2OUT_DATA_WIDTH - DATA1_OUT'length - 1);
-	DATA2_OUT          <= Stage2_DataSROut(50-1 downto 50-32);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));--Stage2_DataSROut (ST2IN_DATA_WIDTH*2-2 downto ST2IN_DATA_WIDTH*2-DATA2_OUT'length-1);
+	DATA2_OUT          <= Stage2_DataSROut (ST2IN_DATA_WIDTH*2 - 2 downto ST2IN_DATA_WIDTH*2 - DATA2_OUT'length - 1);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));-
+	
 	----------------------------------------------------------------------------------	 
 	--BRAM CORRELATION MATRIX ROW SELECTION  
 	----------------------------------------------------------------------------------   
@@ -250,12 +257,60 @@ begin
 	process (CLK) is
 	begin
 		if (rising_edge(CLK)) then
+			
 			if (RESETN = '0') then
-				corr_row_sel <= (others => '0');
-			elsif (Stage1_Enable = '1') then
-				corr_row_sel <= std_logic_vector (unsigned(corr_row_sel) + 1);
+				
+				corr_row_sel 	<= (others => '0');		
+				
+			else
+			
+				if ((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
+				
+						corr_row_sel <= std_logic_vector(unsigned(corr_row_sel)+1);
+				
+				end if;		
+			
 			end if;
+			
 		end if;
 
 	end process;
+	
+	
+	process (CLK) is
+	begin
+		if (rising_edge(CLK)) then
+			
+			if (RESETN = '0') then
+			
+				Stage1_DataIn <= (others => '0');
+				Stage1_Enable	<= '0';
+				
+			else
+			
+				Stage1_DataIn <= S_AXIS_TDATA;
+				
+				if ( STOP_PIPELINE = '1') then
+				
+					Stage1_Enable <= '0';
+					
+				else
+				
+					Stage1_Enable <= (S_AXIS_TVALID and S_AXIS_TREADY_temp);
+				
+				end if;
+				
+			end if;
+			
+		end if;
+
+	end process;
+	
+	
+	
+	
+	
 end architecture Behavioral;
+
+
+

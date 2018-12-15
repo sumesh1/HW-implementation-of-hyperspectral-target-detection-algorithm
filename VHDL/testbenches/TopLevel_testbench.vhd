@@ -31,6 +31,8 @@ use work.my_types_pkg.all;
 use STD.textio.all;
 use ieee.std_logic_textio.all;
 use IEEE.math_real.all;
+use ieee.std_logic_unsigned.all;
+
 entity testbench is
 	--  Port ( );
 end testbench;
@@ -75,6 +77,7 @@ architecture Behavioral of testbench is
 	signal Stat_Vector        : data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
 	file file_VECTORS         : text;
 	file file_RESULTS         : text;
+	file file_RESULTS2         : text;
 	file file_MATRIX          : text;
 
 	file file_STAT            : text;
@@ -145,6 +148,8 @@ begin
 		file_close(file_MATRIX);
 		wait;
 	end process;
+	
+	
 	process is
 		variable v_ILINE : line;
 		variable v_data  : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
@@ -197,85 +202,114 @@ begin
 
 	begin
 		count <= 0;
+		S_AXIS_TLAST <= '0';
 		file_open(file_VECTORS, "cube.txt", read_mode);
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
+		S_AXIS_TDATA <= (others => '0');
 		wait until CLK = '1' and CLK'event;
 
+
 		wait until (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1');
-		while not endfile(file_VECTORS) loop
-			readline(file_VECTORS, v_ILINE);
-			hread(v_ILINE, v_data);
-			--report "The value of 'a' is " & integer'image(to_integer(unsigned(v_data)));
-			--hread(v_ILINE, v_SPACE);           -- read in the space character
-			--hread(v_ILINE, v_ADD_TERM2);
+			while not endfile(file_VECTORS) loop
+			
+				readline(file_VECTORS, v_ILINE);
+				hread(v_ILINE, v_data);
+				--report "The value of 'a' is " & integer'image(to_integer(unsigned(v_data)));
+				--hread(v_ILINE, v_SPACE);           -- read in the space character
+				--hread(v_ILINE, v_ADD_TERM2);
 
-			-- Pass the variable to a signal to allow the ripple-carry to use it
-			if (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
-				temp := std_logic_vector (signed (v_data) * 2);
-				S_AXIS_TDATA <= temp (15 downto 0);
-					--S_AXIS_TDATA <= v_data;
+				-- Pass the variable to a signal to allow the ripple-carry to use it
+				if (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
+					--temp := std_logic_vector (signed (v_data) * 2);
+					--S_AXIS_TDATA <= temp (15 downto 0);
+					S_AXIS_TDATA <= v_data;
 
-			else
-				wait until (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1');
+				else
+				
+					wait until (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1');
+					wait until CLK = '1' and CLK'event;
+					--temp := std_logic_vector (signed (v_data) * 2);
+					--S_AXIS_TDATA <= temp (15 downto 0);
+					S_AXIS_TDATA <= v_data;
+					
+				end if;
+				
+				count <= count + 1;
+				
 				wait until CLK = '1' and CLK'event;
-				temp := std_logic_vector (signed (v_data) * 2);
-				S_AXIS_TDATA <= temp (15 downto 0);
-				--S_AXIS_TDATA <= v_data;
-			end if;
-			count <= count + 1;
-			wait until CLK = '1' and CLK'event;
 
-		end loop;
+			end loop;
+			
+			S_AXIS_TLAST <= '1';
 
 		file_close(file_VECTORS);
+		
+		wait until CLK = '1' and CLK'event;
+		S_AXIS_TLAST <= '0';
+		
 		wait;
 	end process;
+	
+	
+	
+	
 	process (CLK) is
-		variable i                : integer := 0;
 		variable k                : integer := 0;
 		variable MATRIX_COLUMNtmp : std_logic_vector(BRAM_ROW_WIDTH - 1 downto 0);
 	begin
 
 		if (rising_edge(CLK)) then
 
-			if (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
-				i := i + 1;
-				if (i = NUM_BANDS) then
-					i := 0;
-				end if;
-			end if;
+			-- if (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
+			
+				-- i := i + 1;
+				
+				-- if (i = NUM_BANDS) then
+				
+					-- i := 0;
+					
+				-- end if;
+				
+			-- end if;
 
 			for k in 0 to NUM_BANDS - 1 loop
-				MATRIX_COLUMNtmp(BRAM_DATA_WIDTH * (k + 1) - 1 downto BRAM_DATA_WIDTH * (k)) := matrix(i)(k);
+			
+				MATRIX_COLUMNtmp(BRAM_DATA_WIDTH * (k + 1) - 1 downto BRAM_DATA_WIDTH * (k)) := matrix(conv_integer(ROW_SELECT))(k);
+				
 			end loop;
+			
 			MATRIX_COLUMN    <= MATRIX_COLUMNtmp;
-			STATIC_VECTOR_SR <= Stat_Vector (i);
+			STATIC_VECTOR_SR <= Stat_Vector (conv_integer(ROW_SELECT));
 
 		end if;
 	end process;
-	process (CLK) is
+	
+	
+	
+	
+	-- process (CLK) is
 
-	begin
+	-- begin
 
-		if (rising_edge(CLK)) then
-			if (RESETN = '0') then
-				S_AXIS_TLAST <= '0';
-				cnt          <= 0;
-			elsif (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
-				if (cnt = 6) then
-					S_AXIS_TLAST <= '1';
-					cnt          <= cnt + 1;
-				elsif (cnt = 7) then
-					S_AXIS_TLAST <= '0';
-					cnt          <= 0;
-				else
-					cnt <= cnt + 1;
-				end if;
-			end if;
-		end if;
+		-- if (rising_edge(CLK)) then
+			-- if (RESETN = '0') then
+				-- S_AXIS_TLAST <= '0';
+				-- cnt          <= 0;
+			-- elsif (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1') then
+				-- if (cnt = 6) then
+					-- S_AXIS_TLAST <= '1';
+					-- cnt          <= cnt + 1;
+				-- elsif (cnt = 7) then
+					-- S_AXIS_TLAST <= '0';
+					-- cnt          <= 0;
+				-- else
+					-- cnt <= cnt + 1;
+				-- end if;
+			-- end if;
+		-- end if;
 
-	end process;
+	-- end process;
 
 	process is
 	begin
@@ -283,6 +317,15 @@ begin
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
 		wait until CLK = '1' and CLK'event;
+		S_AXIS_TVALID <= '1';
+		wait until CLK = '1' and CLK'event;
+		wait until CLK = '1' and CLK'event;
+		
+		wait until CLK = '1' and CLK'event;
+		wait until CLK = '1' and CLK'event;
+		S_AXIS_TVALID <= '0';
+		wait until CLK = '1' and CLK'event;
+
 		S_AXIS_TVALID <= '1';
 		-- wait for 1500 NS;
 		-- --wait until count = 300;
@@ -329,6 +372,38 @@ begin
 		end loop;
 
 		file_close(file_RESULTS);
+		wait;
+	end process;
+	
+	process is
+		variable v_OLINE : line;
+		variable v_data  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		variable v_SPACE : character;
+		variable count   : integer;
+	begin
+		file_open(file_RESULTS2, "C:\Users\Dordije\Desktop\res2.txt", write_mode);
+		wait until RESETN = '1' and RESETN'event;
+		wait until RESETN = '1' and RESETN'event;
+		wait until CLK = '1' and CLK'event;
+		count := 0;
+		while (true) loop
+			--report "The value of 'count' is " & integer'image(count);
+
+			if (M2_AXIS_TVALID = '1' and M2_AXIS_TREADY = '1') then
+				hwrite(v_OLINE, M2_AXIS_TDATA, right, 8);
+				writeline(file_RESULTS2, v_OLINE);
+				count := count + 1;
+				-- else 
+				-- wait until M_AXIS_TVALID = '1';
+				-- hwrite(v_OLINE, M_AXIS_TDATA, right, 8);
+				-- writeline(file_RESULTS, v_OLINE);
+				-- count := count+1;
+			end if;
+
+			wait until CLK = '1' and CLK'event;
+		end loop;
+
+		file_close(file_RESULTS2);
 		wait;
 	end process;
 	-- process (CLK) is

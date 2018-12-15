@@ -36,7 +36,7 @@ end MasterOutput_tb;
 architecture Behavioral of MasterOutput_tb is
 
 constant DATA_WIDTH    : positive := 32;
-constant PACKET_SIZE   : positive := 4;
+constant PACKET_SIZE   : positive := 8;
 signal   CLK           : std_logic;
 signal   RESETN        : std_logic;
 signal   DATA_IN       : std_logic_vector(DATA_WIDTH - 1 downto 0);
@@ -46,8 +46,8 @@ signal   M_AXIS_TDATA  : std_logic_vector(DATA_WIDTH - 1 downto 0);
 signal   M_AXIS_TLAST  : std_logic;
 signal   M_AXIS_TREADY : std_logic;
 signal   STOP_PIPELINE : std_logic;
-
-signal cnt : integer;
+signal   LAST_PIXEL    : std_logic;
+--signal cnt : integer;
 	
 begin
 
@@ -64,7 +64,9 @@ MasterOutput_INST: entity work.MasterOutput
       M_AXIS_TDATA  => M_AXIS_TDATA,
       M_AXIS_TLAST  => M_AXIS_TLAST,
       M_AXIS_TREADY => M_AXIS_TREADY,
-      STOP_PIPELINE => STOP_PIPELINE);
+      STOP_PIPELINE => STOP_PIPELINE,
+      LAST_PIXEL    => LAST_PIXEL
+);
 
 
 	process is
@@ -84,8 +86,46 @@ MasterOutput_INST: entity work.MasterOutput
 	end process;
 		
 	
-	process (CLK) is
+	-- process (CLK) is
 
+	-- begin
+	
+		-- if (rising_edge(CLK)) then
+		
+			-- if (resetn = '0') then
+			
+				-- DATA_IN_VALID  <= '0';
+				-- cnt <= 0;
+				
+			-- elsif (cnt < 5) then
+			
+				-- cnt <= cnt + 1;
+				-- DATA_IN_VALID  <= '0';
+				
+				
+			-- elsif (cnt > 12 and cnt < 40) then
+				-- cnt <= cnt + 1;
+				-- DATA_IN_VALID  <= '1';
+				
+			-- elsif (cnt >= 40 and cnt < 45) then
+			
+				-- cnt <= cnt + 1;
+				-- DATA_IN_VALID  <= '0';
+
+			-- else
+			
+				-- cnt <= cnt + 1;
+				-- DATA_IN_VALID  <= '1';
+				
+			-- end if;
+			
+		-- end if;
+		
+	-- end process;
+	
+	
+	process (CLK) is
+       variable cnt: integer := 0;
 	begin
 	
 		if (rising_edge(CLK)) then
@@ -93,27 +133,49 @@ MasterOutput_INST: entity work.MasterOutput
 			if (resetn = '0') then
 			
 				DATA_IN_VALID  <= '0';
-				cnt <= 0;
-				
-			elsif (cnt < 5) then
-			
-				cnt <= cnt + 1;
-				DATA_IN_VALID  <= '0';
-				
-				
-			elsif (cnt > 12 and cnt < 40) then
-				cnt <= cnt + 1;
-				DATA_IN_VALID  <= '1';
-				
-			elsif (cnt >= 40 and cnt < 45) then
-			
-				cnt <= cnt + 1;
-				DATA_IN_VALID  <= '0';
-
+				cnt := 0;
 			else
+				
+					cnt := cnt+1;
+					DATA_IN_VALID <= '1';
+				if (cnt = 11) then
+					cnt := 0;
+					DATA_IN_VALID <= '0';
+				end if;
+					
+				
+			end if;
 			
-				cnt <= cnt + 1;
-				DATA_IN_VALID  <= '1';
+		end if;
+		
+	end process;
+	
+	
+	process (CLK) is
+       variable cnt: integer := 0;
+	begin
+	
+		if (rising_edge(CLK)) then
+		
+			if (resetn = '0') then
+			
+				M_AXIS_TREADY  <= '0';
+				cnt := 0;
+			else
+				
+					
+				
+				if (cnt = 6) then
+					cnt := cnt+1;
+					M_AXIS_TREADY <= '0';
+				elsif (cnt = 7) then
+					cnt := 0;
+					M_AXIS_TREADY <= '0';
+				else 
+					cnt := cnt+1;
+					M_AXIS_TREADY <= '1';
+				end if;
+					
 				
 			end if;
 			
@@ -142,20 +204,24 @@ MasterOutput_INST: entity work.MasterOutput
 
 	process is
 	begin
-	
-	M_AXIS_TREADY <= '0';
-	
-	wait for 300 NS;
-	
-	M_AXIS_TREADY <= '1';
+	  LAST_PIXEL <= '0';
+	--M_AXIS_TREADY <= '0';
 	
 	wait for 300 NS;
 	
-	M_AXIS_TREADY <= '0';
+	--M_AXIS_TREADY <= '1';
+	
+	wait for 300 NS;
+	
+	--M_AXIS_TREADY <= '0';
 	
 	wait for 100 NS;
 	
-	M_AXIS_TREADY <= '1';
+	--M_AXIS_TREADY <= '1';
+	
+	wait for 500 NS;
+	
+	LAST_PIXEL <= '1';
 	
 	wait;
 	end process;
