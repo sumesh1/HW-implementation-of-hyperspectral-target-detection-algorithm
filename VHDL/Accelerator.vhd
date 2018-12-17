@@ -183,9 +183,11 @@ begin
 			if (RESETN = '0') then
 				ShReg <= ((others => (others => '0')));
 			else
+			
 				if (Stage1_Enable = '1') then
 					ShReg <= Stage1_DataIn & ShReg (0 to NUM_BANDS + 1);
 				end if;
+				
 			end if;
 		end if;
 

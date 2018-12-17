@@ -127,6 +127,7 @@ architecture arch_imp of AXI_BRAM is
 
 	--CORR MATRIX BRAM SIGNALS
 	signal we                  : std_logic_vector(NUM_BANDS - 1 downto 0);
+	signal we_temp             : std_logic_vector(NUM_BANDS - 1 downto 0);
 	signal r_addr              : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal w_addr              : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
 	signal din                 : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
@@ -500,6 +501,7 @@ begin
 			if (S_AXI_ARESETN = '0') then
 			
 				we         <= (others         => '0');
+				we_temp    <= (others         => '0');
 				w_addr     <= (others     => '0');
 				din        <= (others        => '0');
 				VEC_we     <= (others     => '0');
@@ -520,15 +522,18 @@ begin
 					if (matrix_count = 0) then
 					
 						we      <= std_logic_vector(to_unsigned(1, we'length));
+						we_temp <= std_logic_vector(to_unsigned(1, we'length));
 
-					elsif (matrix_count mod NUM_BANDS = 0) then
+					elsif ( (matrix_count mod NUM_BANDS ) = 0) then
 					
 						w_addr  <= std_logic_vector(unsigned(w_addr) + 1);
 						we      <= std_logic_vector(to_unsigned(1, we'length));
+						we_temp <= std_logic_vector(to_unsigned(1, we'length));
 						
 					else
 					
-						we      <= std_logic_vector(unsigned(we) sll 1);
+						we_temp <= std_logic_vector(unsigned(we_temp) sll 1);
+						we      <= std_logic_vector(unsigned(we_temp) sll 1);
 					
 					end if;
 
