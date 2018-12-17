@@ -95,10 +95,17 @@ extern double sR[N_bands];
 extern double xR[N_bands] ;
 extern double result[N_pixels] ;
 extern datatype target[N_bands];
-extern s32 R32[N_bands][N_bands]={};
-extern s32 sR32[N_bands]={};
-extern u32 *BRAM_BASE_ADDR = XPAR_BRAM_WRAPPER_0_BASEADDR;
-extern s32 receiver [N_pixels]={};
+extern s32 R32[N_bands][N_bands];
+extern s32 sR32[N_bands];
+extern volatile u32 *BRAM_BASE_ADDR;
+extern s32 receiver [N_pixels];
+extern XAxiDma AxiDma;		/* Instance of the XAxiDma */
+extern INTC Intc;	/* Instance of the Interrupt Controller */
+extern volatile int TxDone;
+extern volatile int RxDone;
+extern volatile int Error;
+extern XTmrCtr TimerCounter;
+
 
 
 int adaptive_cosine_estimator ();
@@ -115,16 +122,15 @@ extern void xil_printf(const char *format, ...);
 static void Uart550_Setup(void);
 #endif
 
-static int ReceiveData(s32* array, int Length);
-static void TxIntrHandler(void *Callback);
-static void RxIntrHandler(void *Callback);
-static int main_DMA(s32* array,s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS);
-static int setup_DMA(void);
+int ReceiveData(s32* array, int Length);
+void TxIntrHandler(void *Callback);
+void RxIntrHandler(void *Callback);
+int main_DMA(datatype* array,s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS);
+int setup_DMA(void);
 
-
-static int SetupIntrSystem(INTC * IntcInstancePtr,
+int SetupIntrSystem(INTC * IntcInstancePtr,
 			   XAxiDma * AxiDmaPtr, u16 TxIntrId, u16 RxIntrId);
-static void DisableIntrSystem(INTC * IntcInstancePtr,
+void DisableIntrSystem(INTC * IntcInstancePtr,
 					u16 TxIntrId, u16 RxIntrId);
 
 int init_timer ( u16 DeviceId , u8 TmrCtrNumber );
@@ -134,9 +140,9 @@ u32 stop_timer (u8 TmrCtrNumber );
 double scalarProduct (double*, datatype*, int);
 double scalarProduct2 (datatype* a, datatype* b, int N);
 int FfsSd(char*, datatype * );
-int FfsSdWrite (char*, double *);
+int FfsSdWrite (char*, s32 *);
 int read_data(char*, datatype * );
-int write_data(char*, double *);
+int write_data(char*, s32 *);
 //void matrixMult(s16*,s16*,s16*);
 //void removeMean(s16*,s32*,int,int);
 void hyperCorr (datatype *, double (*)[], int, int, int);

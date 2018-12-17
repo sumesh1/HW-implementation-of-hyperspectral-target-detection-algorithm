@@ -29,6 +29,17 @@ double sR[N_bands] = {};
 double xR[N_bands] = {};
 double result[N_pixels] = {};
 datatype target[N_bands] = {};
+volatile u32 *BRAM_BASE_ADDR = XPAR_BRAM_WRAPPER_0_BASEADDR;
+s32 R32[N_bands][N_bands] = {};
+s32 sR32[N_bands] = {};
+s32 receiver [N_pixels] = {};
+XAxiDma AxiDma;		/* Instance of the XAxiDma */
+INTC Intc;	/* Instance of the Interrupt Controller */
+volatile int TxDone;
+volatile int RxDone;
+volatile int Error;
+XTmrCtr TimerCounter;
+
 
 /*****************************************************************************/
 
@@ -376,7 +387,7 @@ int read_data(char *File_Name, datatype * OutputArray)
 
 /*****************************************************************************/
 
-int write_data(char *File_Name, double * OutputArray)
+int write_data(char *File_Name, s32 * OutputArray)
 {
 	int Status;
 
@@ -486,7 +497,7 @@ int FfsSd(char* File_Name, datatype* OutputArray)
 
 /*****************************************************************************/
 
-int FfsSdWrite (char * File_Name, double * OutputArray)
+int FfsSdWrite (char * File_Name, s32 * OutputArray)
 {
 	FRESULT Res;
 	UINT NumBytesWritten;
@@ -748,7 +759,7 @@ u32 stop_timer (u8 TmrCtrNumber ){
 
 
 /******************************************************************************/
-static int ReceiveData(s32* array, int Length)
+int ReceiveData(s32* array, int Length)
 {
 
 	Xil_DCacheInvalidateRange((UINTPTR)array, Length);
@@ -757,7 +768,7 @@ static int ReceiveData(s32* array, int Length)
 }
 
 /******************************************************************************/
-static void TxIntrHandler(void *Callback)
+void TxIntrHandler(void *Callback)
 {
 
 	u32 IrqStatus;
@@ -832,7 +843,7 @@ static void TxIntrHandler(void *Callback)
 * @note		None.
 *
 ******************************************************************************/
-static void RxIntrHandler(void *Callback)
+void RxIntrHandler(void *Callback)
 {
 	u32 IrqStatus;
 	int TimeOut;
@@ -905,7 +916,7 @@ static void RxIntrHandler(void *Callback)
 * @note		None.
 *
 ******************************************************************************/
-static int SetupIntrSystem(INTC * IntcInstancePtr,
+int SetupIntrSystem(INTC * IntcInstancePtr,
 			   XAxiDma * AxiDmaPtr, u16 TxIntrId, u16 RxIntrId)
 {
 	int Status;
@@ -1022,7 +1033,7 @@ static int SetupIntrSystem(INTC * IntcInstancePtr,
 * @note		None.
 *
 ******************************************************************************/
-static void DisableIntrSystem(INTC * IntcInstancePtr,
+void DisableIntrSystem(INTC * IntcInstancePtr,
 					u16 TxIntrId, u16 RxIntrId)
 {
 #ifdef XPAR_INTC_0_DEVICE_ID
@@ -1035,7 +1046,7 @@ static void DisableIntrSystem(INTC * IntcInstancePtr,
 #endif
 }
 
-static int setup_DMA(void)
+int setup_DMA(void)
 {
 	int Status;
 	XAxiDma_Config *Config;
@@ -1089,7 +1100,7 @@ static int setup_DMA(void)
 		return XST_SUCCESS;
 }
 
-static int main_DMA(s32 * array, s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS)
+int main_DMA(datatype * array, s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS)
 {
 	int Status;
 	int Tries = NUMBER_OF_TRANSFERS;
