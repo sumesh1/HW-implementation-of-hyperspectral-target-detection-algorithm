@@ -8,7 +8,8 @@
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
--- Description: 
+-- Description: Wrapper in VHDL because Vivado does not support VHDL 2008 
+--				Same as Top Level vhdl
 -- 
 -- Dependencies: 
 -- 
@@ -20,14 +21,9 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.all;
 use ieee.math_real.all;
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+
 
 entity TopLevel_wrapper is
 	generic

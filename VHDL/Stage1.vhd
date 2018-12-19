@@ -26,12 +26,14 @@ use work.my_types_pkg.all;
 -- Definition of Ports
 -- CLK            : Synchronous clock
 -- RESET_N        : System reset, active low
--- EN  			  : Data in is valid
--- IN_1  		  : Data in 1
--- IN_2   		  : Data in 2
--- V_LEN		  : Length of input array
--- P_RDY		  : Data out is valid
--- P		      : Data Out
+-- Stage1_Enable     		  : Data in is valid
+-- Stage1_DataIn      		  : Data in 1
+-- Stage1_DataValid    		  : Data out is valid
+-- Stage1_DataOut    		  : Data out (x'R^-1)
+-- Stage1_DataSROut  		  : Data SR out (s'R^-1x)
+-- CORR_MATRIX_COLUMN	      : correlation matrix column/row from BRAM
+-- STATIC_VECTOR_SR  		  : element of s'R^-1 vector from BRAM
+
 -------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- Entity Section

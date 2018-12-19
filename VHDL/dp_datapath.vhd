@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: Dordije Boskovic
+-- 
+-- Create Date: 
+-- Design Name: 
+-- Module Name: Dot product datapath - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: MAC unit
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE . STD_LOGIC_1164 . all;
 use ieee . numeric_std . all;
@@ -42,19 +62,19 @@ begin
 				
 			elsif (en = '1') then
 				
-				--first pipeline stage regs
+				--First pipeline stage regs
 				in_1_reg <= in_1;
 				in_2_reg <= in_2;
 				
-				-- Calculate multiplication between RAW and G.
+				-- Multiply in1 and in2
 				mul_r <= std_logic_vector (signed (in_1_reg) * signed (in_2_reg));
 				
 				if (ripple = '1') then
-					-- Initially set accumulator reg to first multiplication between RAW and G
+					-- Ripple multiplication register data to accumulator 
 					add_r <= std_logic_vector (resize(signed (mul_r), add_r'length));
 				
 				else
-					-- Accumulutator reg set to current multiplication between RAW and G added with acummulated result
+					-- Acculumate result
 					add_r <= std_logic_vector (signed (mul_r) + signed (add_r));--std_logic_vector ( resize ( signed ( mul_r )+ signed ( add_r ),add_r ' length ));
 				
 				end if;

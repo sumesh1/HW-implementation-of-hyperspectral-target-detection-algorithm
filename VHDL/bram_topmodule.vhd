@@ -1,5 +1,22 @@
--- Modified by: Dordije Boskovic
-
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: Dordije Boskovic
+-- 
+-- Create Date: 
+-- Design Name: 
+-- Module Name: BRAM controller via AXI LITE - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -460,6 +477,8 @@ begin
 			end if;
 		end if;
 	end process;
+	
+	
 	------------------------------------------------------------------------------
 	-- BRAM HANDLING
 	------------------------------------------------------------------------------
@@ -482,11 +501,11 @@ begin
 		end if;
 	end process;
 
-	--MATRIX 
+	--MATRIX select
 	r_addr           <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
 	MATRIX_ROW       <= dout;
 
-	--VECTOR
+	--VECTOR select
 	VEC_r_addr       <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
 	STATIC_VECTOR_SR <= VEC_dout;
 	
@@ -514,7 +533,7 @@ begin
 				
 			else
 
-				--MATRIX
+				--MATRIX handling - keyhole writing to slv_reg0
 				if (slv_reg_wren_dly = '1' and matrix_count < NUM_BANDS * NUM_BANDS and axi_awaddr_dly = b"00") then
 
 					din <= slv_reg0;
@@ -545,7 +564,7 @@ begin
 					
 				end if;
 
-				--VECTOR
+				--VECTOR handling - keyhole writing to slv_reg1
 				if (slv_reg_wren_dly = '1' and vector_count < NUM_BANDS and axi_awaddr_dly = b"01") then
 
 					VEC_din    <= slv_reg1;
@@ -579,7 +598,7 @@ begin
 				end if;
 				
 				
-				
+				--ENABLE OR DISABLE DEBUG MODE
 				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"11") then
 
 					DEBUG    <= slv_reg3(0);

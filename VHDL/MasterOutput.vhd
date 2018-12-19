@@ -10,7 +10,7 @@
 -- Tool Versions: 
 -- Description: 
 -- 
--- Dependencies: 
+-- Dependencies: Packet FIFO, does not use BRAM
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
@@ -19,15 +19,8 @@
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.all;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity MasterOutput is
 	generic (
@@ -65,7 +58,11 @@ architecture Behavioral of MasterOutput is
 
 begin
 
+	--TLAST is only asserted if it is the last element of the packet 
+	--and last incoming packet of data stream from DMA was computed in DMA
 	M_AXIS_TLAST       <= tlast and end_signal;
+	
+	--pipeline stalled if DMA cannot accept incoming packet
 	stop_pipeline_temp <= '1' when (state = Write_Outputs and M_AXIS_TREADY = '0') else '0';
 	STOP_PIPELINE      <= stop_pipeline_temp;
 	
@@ -88,7 +85,7 @@ begin
 		end if;
 	end process;
 	
-	
+	--Collect data from accelerator and assemble into packets
 	Input_Module : process (CLK) is
 	begin
 		if (rising_edge(CLK)) then
@@ -125,7 +122,7 @@ begin
 		end if;
 	end process Input_Module;
 	
-	
+	--send data over AXI stream bus
 	Output_Module : process (CLK) is
 	begin
 		if (rising_edge(CLK)) then

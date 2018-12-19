@@ -1,5 +1,22 @@
--- Modified by: Dordije Boskovic
-
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: Dordije Boskovic
+-- 
+-- Create Date: 
+-- Design Name: 
+-- Module Name: BRAM WRAPPER - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: Wrapper in VHDL because Vivado does not support VHDL 2008 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

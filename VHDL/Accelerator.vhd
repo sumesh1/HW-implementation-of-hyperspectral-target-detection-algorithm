@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: Dordije Boskovic
+-- 
+-- Create Date: 14.10.2018 10:15:03
+-- Design Name: 
+-- Module Name: Accelerator - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -12,6 +32,13 @@ use work.my_types_pkg.all;
 -- S_AXIS_TDATA   :  Data in 
 -- S_AXIS_TLAST   : Optional data in qualifier
 -- S_AXIS_TVALID  : Data in is valid
+-- DATA_OUT_VALID : Data out of accelerator is valid 
+-- DATA1_OUT      : 
+-- DATA2_OUT      : 
+-- STOP_PIPELINE  : Stop pipeline signal from master output 
+-- MATRIX_COLUMN  : full column of inverted correlation matrix
+-- ROW_SELECT     : select column/row of inverted correlation matrix
+-- STATIC_VECTOR_SR : sR^-1 vector element, also selected by ROW_SELECT signal
 
 -------------------------------------------------------------------------------
 

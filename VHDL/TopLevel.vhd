@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: Dordije Boskovic
+-- 
+-- Create Date: 
+-- Design Name: 
+-- Module Name: Top level- Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: accelerator core
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
@@ -13,6 +33,30 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.my_types_pkg.all;
 use IEEE.math_real.all;
+
+-------------------------------------------------------------------------------------
+-- Definition of Ports
+-- CLK              	  : Synchronous clock
+-- RESETN           	  : System reset, active low
+-- S_AXIS_TREADY     	  : accelerator ready
+-- S_AXIS_TDATA      	  : Data in 
+-- S_AXIS_TLAST      	  : Last pixel component
+-- S_AXIS_TVALID     	  : Data in valid
+-- M1_AXIS_TVALID    	  : Data out is valid
+-- M1_AXIS_TDATA          : Data Out (x'R^-1x)
+-- M1_AXIS_TLAST     	  : Data out last packet
+-- M1_AXIS_TREADY         : receiver ready
+-- M2_AXIS_TVALID         : Data out is valid
+-- M2_AXIS_TDATA          : Data Out (s'R^-1x)^2
+-- M2_AXIS_TLAST          : Data out last packet
+-- M2_AXIS_TREADY         : receiver ready
+-- MATRIX_ROW             : Correlation matrix row/column data
+-- ROW_SELECT             : Select row/column
+-- STATIC_VECTOR_SR       : Element of s'R^1 vector
+-------------------------------------------------------------------------------
+
+
+
 entity TopLevel_Accelerator is
 	generic (
 		PIXEL_DATA_WIDTH : positive := 16;

@@ -24,12 +24,14 @@ use ieee . numeric_std . all;
 -- Definition of Ports
 -- CLK            : Synchronous clock
 -- RESET_N        : System reset, active low
--- EN  			  : Data in is valid
--- IN_1  		  : Data in 1
--- IN_2   		  : Data in 2
--- V_LEN		  : Length of input array
--- P_RDY		  : Data out is valid
--- P		      : Data Out
+-- Stage2_Enable    	  : Data in is valid
+-- Stage2_DataIn    	  : Data in 1 (from stage 1 x'R^-1)
+-- Stage2_DataSRIn  	  : Data in 2 (from stage 1 s'R^-1x)
+-- Stage2_DataShReg 	  : Data in from Shift Register
+-- Stage2_DataValid 	  : Data out is valid
+-- Stage2_DataOut         : Data Out (x'R^-1x)
+-- Stage2_DataSROut 	  : Data out 2 (s'R^-1x)^2
+
 -------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- Entity Section
