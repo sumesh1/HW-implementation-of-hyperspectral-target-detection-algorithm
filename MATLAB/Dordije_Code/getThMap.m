@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-% used to show the map of detection statistic values 
+% used to show the map of detection statistic values compared with threshold
 
 % ds_vector= input vector from TD algorithm
 % th = threshold value

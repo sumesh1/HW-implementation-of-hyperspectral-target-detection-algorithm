@@ -1,3 +1,4 @@
+%just a test
 sc=gt_data_set.salinas.cube;
 [h,w,d] = size(sc);
 M=hyperConvert2d(sc);
@@ -14,7 +15,7 @@ im=hyperConvert2Colormap(res2d,hot);
 
 
 
-
+%PCA CALCULATION
  q=20;
  M_2d_pca = hyperConvert2d(sc);
  M_2d_pca = M_2d_pca';
@@ -34,12 +35,7 @@ respca2d=reshape(respca,[h,w]);
 
 impca=hyperConvert2Colormap(respca2d,hot);
 
-
-
-
-
-
-
+%MNF CALCULATION
  [Mg_mnf, Ag_mnf] = GreenMNF(sc);
             Ag_mnf_inv = inv(Ag_mnf);
             
@@ -57,9 +53,6 @@ resmnf=hyperAceR(hyperConvert2d(M_new_mnf),targetmnf);
 resmnf2d=reshape(resmnf,[h,w]);
 
 immnf=hyperConvert2Colormap(resmnf2d,hot);
-
-
-
 
 
 %figure(1);
