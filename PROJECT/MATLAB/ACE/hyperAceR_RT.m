@@ -17,16 +17,21 @@ function [results] = hyperAceR_RT(M, S)
 	[p, N] = size(M);
 
 	results = zeros(1, N);
-	R = 0;
 	
+    R = M(:,1)*M(:,1)';
+	G = pinv(R);
+    
 	for k = 1:N
 		
-		x = M(:,k);
-		R = R + x*x'; %update correlation matrix, no normalization
-		G = pinv(R);  %pseudoinverse for first few pixels, later it is same as inverse
-		
-		tmp = (S.'*G*S);
+        x = M(:,k);
+        tmp = (S.'*G*S);
 		results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
+        
+        if(k~=1)
+            R = R + x*x'; %update correlation matrix, no normalization
+            G = pinv(R);  %pseudoinverse for first few pixels, later it is same as inverse
+        end
+		
 			
 	end
 
