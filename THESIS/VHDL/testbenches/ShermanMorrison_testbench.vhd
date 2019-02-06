@@ -116,9 +116,9 @@ SMInstance : entity WORK.ShermanMorrison(Behavioral)
 	begin
 		wait until CLK'event and CLK = '1';
 		if (RESETN = '0') then
-			S_AXIS_TDATA <= std_logic_vector(to_unsigned(0, PIXEL_DATA_WIDTH));
+			S_AXIS_TDATA <= std_logic_vector(to_unsigned(25000, PIXEL_DATA_WIDTH));
 		elsif (S_AXIS_TVALID = '1') then
-			S_AXIS_TDATA <= std_logic_vector(unsigned(S_AXIS_TDATA) + 1);
+			S_AXIS_TDATA <= std_logic_vector(unsigned(S_AXIS_TDATA) + 10);
 		end if;
 
 	end process;

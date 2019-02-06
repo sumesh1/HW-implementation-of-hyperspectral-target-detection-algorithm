@@ -23,9 +23,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.all;
 use IEEE.math_real.all;
-library work;
-use work.td_package.all;
-
 -------------------------------------------------------------------------------------
 -- Definition of Ports
 -- CLK              	  : Synchronous clock
@@ -130,8 +127,8 @@ constant STEP1OUT_DATA_WIDTH : integer := integer(ceil(real(CORRELATION_DATA_WID
 constant STEP2OUT_DATA_WIDTH : integer := OUT_DATA_WIDTH;
 
 --CORRELATION MATRIX 
---type CorrMatrixColumn is array (0 to NUM_BANDS-1) of std_logic_vector(CORRELATION_DATA_WIDTH-1 downto 0);
---type CorrMatrixType is array (0 to NUM_BANDS-1) of CorrMatrixColumn;
+type CorrMatrixColumn is array (0 to NUM_BANDS-1) of std_logic_vector(CORRELATION_DATA_WIDTH-1 downto 0);
+type CorrMatrixType is array (0 to NUM_BANDS-1) of CorrMatrixColumn;
 
 constant vectorzero: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(0, CORRELATION_DATA_WIDTH));
 constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(500000000, CORRELATION_DATA_WIDTH));
