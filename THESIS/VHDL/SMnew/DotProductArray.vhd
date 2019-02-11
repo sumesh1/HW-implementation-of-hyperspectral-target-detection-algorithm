@@ -21,6 +21,8 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.math_real.all;
+use ieee.numeric_std.all;
 library work;
 use work.td_package.all;
 
@@ -46,9 +48,13 @@ end DotProductArray;
 
 architecture Behavioral of DotProductArray is
 
-	signal RIPPLE: std_logic;
-	signal DATA_OUT: CorrMatrixColumn;
+	constant ACCUMULATOR_WIDTH: positive :=  (integer(ceil(log2(real(NUM_BANDS)))) + IN1_DATA_WIDTH + IN2_DATA_WIDTH - 1);
+	
+	type DataOutType is array (0 to NUM_BANDS-1) of std_logic_vector(ACCUMULATOR_WIDTH-1 downto 0);
+	
+	signal DATA_OUT: DataOutType;
 	signal DATA_CALCULATED: std_logic;
+	signal CLEAR: std_logic;
 
 begin
 
@@ -58,16 +64,16 @@ begin
 ---------------------------------------------------------------------------------
 	GEN_DP : for I in 0 to NUM_BANDS - 1 generate
 	begin
-		dp_datapath_inst : dp_datapath
+		dp_datapath_sm_inst : entity work.dp_datapath_sm(Behavioral)
 		generic map(
 			bit_depth_1 => IN1_DATA_WIDTH,
 			bit_depth_2 => IN2_DATA_WIDTH,
-			p_bit_width => OUT_DATA_WIDTH
+			p_bit_width => ACCUMULATOR_WIDTH
 		)
 		port map(
 			clk     => CLK,
 			en      => ENABLE,
-			ripple  => RIPPLE,
+			clear   => CLEAR,
 			reset_n => RESETN,
 			in_1    => IN1_COMPONENT,
 			in_2    => IN2_COLUMN(I),
@@ -80,7 +86,7 @@ begin
 	-- Dot product controller
 ---------------------------------------------------------------------------------	 
 
-	dp_controller_inst : dp_controller
+	dp_controller_sm_inst : entity work.dp_controller_sm(Behavioral)
 	generic map(
 		V_LEN => NUM_BANDS
 	)
@@ -89,7 +95,7 @@ begin
 		en      => ENABLE,
 		reset_n => RESETN,
 		p_rdy   => DATA_CALCULATED,
-		ripple  => RIPPLE
+		clear   => CLEAR
 	);
 	
 	
@@ -111,8 +117,11 @@ begin
 	
 				if( DATA_CALCULATED = '1') then
 				
-					COLUMN_OUT <= DATA_OUT;
 				
+					for i in 0 to NUM_BANDS-1 loop
+						COLUMN_OUT(i) <= DATA_OUT(i)(ACCUMULATOR_WIDTH-1  downto ACCUMULATOR_WIDTH-OUT_DATA_WIDTH);
+					end loop;
+					
 				end if;
 	
 			

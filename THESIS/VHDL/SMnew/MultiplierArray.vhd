@@ -46,6 +46,8 @@ end MultiplierArray;
 
 architecture Behavioral of MultiplierArray is
 
+	signal CLEAR : std_logic;
+
 begin
 
 ---------------------------------------------------------------------------------	 
@@ -54,7 +56,7 @@ begin
 
 	GEN_MULT : for I in 0 to NUM_BANDS - 1 generate
 	begin
-		mult_datapath_inst : mult_datapath
+		mult_datapath_inst : entity work.mult_datapath(Behavioral)
 		generic map(
 			bit_depth_1 => IN1_DATA_WIDTH,
 			bit_depth_2 => IN2_DATA_WIDTH,
@@ -63,6 +65,7 @@ begin
 		port map(
 			clk     => CLK,
 			en      => ENABLE,
+			clear   => CLEAR,
 			reset_n => RESETN,
 			in_1    => IN1_COMPONENT,
 			in_2    => IN2_COLUMN(I),
@@ -76,7 +79,7 @@ begin
 	-- product controller
 ---------------------------------------------------------------------------------	
 	
-	mult_controller_inst : mult_controller
+	mult_controller_inst :  entity work.mult_controller(Behavioral)
 	generic map(
 		PIPELINE_DEPTH => 2
 	)
@@ -84,6 +87,7 @@ begin
 		clk     => CLK,
 		en      => ENABLE,
 		reset_n => RESETN,
+		clear   => CLEAR,
 		p_rdy   => DATA_VALID
 	);	
 

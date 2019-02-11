@@ -22,7 +22,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-
+library work;
+use work.td_package.all;
 
 
 entity ShermanMorrison_testbench is
@@ -43,15 +44,18 @@ architecture Behavioral of ShermanMorrison_testbench is
 	signal S_AXIS_TLAST       : std_logic;
 	signal S_AXIS_TVALID      : std_logic;
 
-	signal M_AXIS_TVALID     : std_logic;
-	signal M_AXIS_TDATA      : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
-	signal M_AXIS_TLAST      : std_logic;
-	signal M_AXIS_TREADY     : std_logic;
+	signal OUTPUT_COLUMN	 : CorrMatrixColumn;
+	signal OUTPUT_VALID     :  std_logic;
+	
+	-- signal M_AXIS_TVALID     : std_logic;
+	-- signal M_AXIS_TDATA      : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	-- signal M_AXIS_TLAST      : std_logic;
+	-- signal M_AXIS_TREADY     : std_logic;
 
 begin
 
 
-SMInstance : entity WORK.ShermanMorrison(Behavioral)
+SMInstance : entity WORK.ShermanMorrisonTopLevel(Behavioral)
 		generic map(
 			PIXEL_DATA_WIDTH => PIXEL_DATA_WIDTH,
 			OUT_DATA_WIDTH   => OUT_DATA_WIDTH,
@@ -67,10 +71,8 @@ SMInstance : entity WORK.ShermanMorrison(Behavioral)
 			S_AXIS_TDATA     => S_AXIS_TDATA,
 			S_AXIS_TLAST     => S_AXIS_TLAST,
 			S_AXIS_TVALID    => S_AXIS_TVALID,
-			M_AXIS_TVALID   => M_AXIS_TVALID,
-			M_AXIS_TDATA    => M_AXIS_TDATA,
-			M_AXIS_TLAST    => M_AXIS_TLAST,
-			M_AXIS_TREADY   => M_AXIS_TREADY
+			OUTPUT_COLUMN   => OUTPUT_COLUMN,
+			OUTPUT_VALID    =>   OUTPUT_VALID 
 		);
 
 
@@ -96,7 +98,6 @@ SMInstance : entity WORK.ShermanMorrison(Behavioral)
 	begin
 	
 	S_AXIS_TVALID <= '1';
-	M_AXIS_TREADY <= '1';
 	S_AXIS_TLAST  <= '0';
 	
 	wait;
@@ -107,7 +108,7 @@ SMInstance : entity WORK.ShermanMorrison(Behavioral)
 		wait until CLK'event and CLK = '1';
 		if (RESETN = '0') then
 			S_AXIS_TDATA <= std_logic_vector(to_unsigned(25000, PIXEL_DATA_WIDTH));
-		elsif (S_AXIS_TVALID = '1') then
+		elsif ( (S_AXIS_TVALID and S_AXIS_TREADY) = '1') then
 			S_AXIS_TDATA <= std_logic_vector(unsigned(S_AXIS_TDATA) + 10);
 		end if;
 
