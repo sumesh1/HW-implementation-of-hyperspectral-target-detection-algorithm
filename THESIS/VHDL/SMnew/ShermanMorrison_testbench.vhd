@@ -55,7 +55,7 @@ architecture Behavioral of ShermanMorrison_testbench is
 begin
 
 
-SMInstance : entity WORK.ShermanMorrisonTopLevel(Behavioral)
+SMInstance : entity WORK.ShermanMorrisonTopLevel(BRAM)
 		generic map(
 			PIXEL_DATA_WIDTH => PIXEL_DATA_WIDTH,
 			OUT_DATA_WIDTH   => OUT_DATA_WIDTH,

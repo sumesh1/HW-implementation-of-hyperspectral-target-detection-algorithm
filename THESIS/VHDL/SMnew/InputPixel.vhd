@@ -97,19 +97,17 @@ begin
 		
 		if rising_edge(CLK) then
 			
+		
+				COMPONENT_OUT <= PIXEL_VECTOR (to_integer(unsigned(COMPONENT_NUMBER)));
+			
 				
-				COMPONENT_OUT (i) <= PIXEL_VECTOR (to_integer(unsigned(COMPONENT_NUMBER)));
-				
-				
-			for i in 0 to NUM_BANDS - 1 loop
 			
 				if (WRITE_ENABLE = '1') then
 				
-					PIXEL_VECTOR (to_integer(unsigned(COLUMN_NUMBER))) <= COMPONENT_IN(i);
+					PIXEL_VECTOR (to_integer(unsigned(COMPONENT_NUMBER))) <= COMPONENT_IN;
 				
 				end if;
 			
-			end loop;
 				
 		end if;
 		

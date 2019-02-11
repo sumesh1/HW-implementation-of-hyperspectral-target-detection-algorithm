@@ -88,7 +88,7 @@ end Registers;
 
 architecture BRAM of CorrelationMatrix is
 
-
+	constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(500000000, CORRELATION_DATA_WIDTH));
 	type ram_type is array (0 to NUM_BANDS - 1) of std_logic_vector (NUM_BANDS * CORRELATION_DATA_WIDTH - 1 downto 0);
 	signal CORR_MATRIX : ram_type;
 
@@ -99,22 +99,24 @@ begin
 		
 		if rising_edge(CLK) then
 			
-			for i in 0 to NUM_BANDS - 1 loop
 				
-				COLUMN_OUT (i) <= CORR_MATRIX (to_integer(unsigned(COLUMN_NUMBER)))((i + 1) * CORRELATION_DATA_WIDTH - 1 downto i * CORRELATION_DATA_WIDTH);
+				for i in 0 to NUM_BANDS - 1 loop
+					
+					COLUMN_OUT (i) <= CORR_MATRIX (to_integer(unsigned(COLUMN_NUMBER)))((i + 1) * CORRELATION_DATA_WIDTH - 1 downto i * CORRELATION_DATA_WIDTH);
+				
+				end loop;
+					
+				for i in 0 to NUM_BANDS - 1 loop
+				
+					if (WRITE_ENABLE = '1') then
+					
+						CORR_MATRIX (to_integer(unsigned(COLUMN_NUMBER)))((i + 1) * CORRELATION_DATA_WIDTH - 1 downto i * CORRELATION_DATA_WIDTH) <= COLUMN_IN (i);
+					
+					end if;
+				
+				end loop;
 			
-			end loop;
-				
-			for i in 0 to NUM_BANDS - 1 loop
 			
-				if (WRITE_ENABLE = '1') then
-				
-					CORR_MATRIX (to_integer(unsigned(COLUMN_NUMBER)))((i + 1) * CORRELATION_DATA_WIDTH - 1 downto i * CORRELATION_DATA_WIDTH) <= COLUMN_IN (i);
-				
-				end if;
-			
-			end loop;
-				
 		end if;
 		
 	end process;
