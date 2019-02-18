@@ -40,11 +40,23 @@ entity ShermanMorrisonTopLevel is
 		RESETN           : in std_logic;
 		S_AXIS_TREADY    : out std_logic;
 		S_AXIS_TDATA     : in std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
-		S_AXIS_TLAST     : in std_logic;
+		--S_AXIS_TLAST     : in std_logic;
 		S_AXIS_TVALID    : in std_logic;
-		OUTPUT_COLUMN	 : out CorrMatrixColumn;
-		OUTPUT_VALID     : out std_logic
 		
+		--S_DIV_AXIS_TREADY    : out std_logic;
+		S_DIV_AXIS_TDATA     : in std_logic_vector(39 downto 0);
+		--S_DIV_AXIS_TLAST     : in std_logic;
+		S_DIV_AXIS_TVALID    : in std_logic;
+		
+		
+		--M_DIV_AXIS_TREADY    : in std_logic;
+		M_DIV_AXIS_TDATA     : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		M_DIV_AXIS_TVALID    : out std_logic
+		
+		-- OUTPUT_COLUMN	 : out CorrMatrixColumn;
+		-- OUTPUT_VALID     : out std_logic;
+		-- OUTPUT_DATA		 : out std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
+		-- OUTPUT_VALID2     : out std_logic
 	);
 end ShermanMorrisonTopLevel;
 
@@ -52,395 +64,398 @@ end ShermanMorrisonTopLevel;
 	-- ARCHITECTURE REGISTERS
 ---------------------------------------------------------------------------------	
 
-architecture Registers of ShermanMorrisonTopLevel is
+-- architecture Registers of ShermanMorrisonTopLevel is
 
-	signal COMPONENT_IN : std_logic_vector (PIXEL_DATA_WIDTH-1 downto 0);
-	signal COMPONENT_OUT: std_logic_vector (PIXEL_DATA_WIDTH-1 downto 0);
-	signal COMPONENT_NUMBER: std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
-	signal COMPONENT_WRITE_ENABLE: std_logic;
+	-- signal COMPONENT_IN : std_logic_vector (PIXEL_DATA_WIDTH-1 downto 0);
+	-- signal COMPONENT_OUT: std_logic_vector (PIXEL_DATA_WIDTH-1 downto 0);
+	-- signal COMPONENT_NUMBER: std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
+	-- signal COMPONENT_WRITE_ENABLE: std_logic;
 	
-	signal COLUMN_IN  : CorrMatrixColumn;
-	signal COLUMN_OUT : CorrMatrixColumn;
-	signal COLUMN_NUMBER: std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
-	signal COLUMN_WRITE_ENABLE: std_logic;
+	-- signal COLUMN_IN  : CorrMatrixColumn;
+	-- signal COLUMN_OUT : CorrMatrixColumn;
+	-- signal COLUMN_NUMBER: std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
+	-- signal COLUMN_WRITE_ENABLE: std_logic;
 	
-	signal STEP1_ENABLE : std_logic;
-	signal STEP1_DOTPROD :CorrMatrixColumn;
-	signal STEP1_DATA_VALID: std_logic;
-	signal S_AXIS_TREADY_temp: std_logic;
-	
-	
-	signal STEP2_ENABLE : std_logic;
-	signal STEP2_PROD :CorrMatrixColumn;
-	signal STEP2_INPUT : std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
-	signal STEP2_DATA_VALID: std_logic;
-	
-	signal TEMP_COLUMN_IN  : CorrMatrixColumn;
-	signal TEMP_COLUMN_OUT : CorrMatrixColumn;
-	signal TEMP_COLUMN_NUMBER: std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
-	signal TEMP_WRITE_ENABLE: std_logic;
-	
-	signal STEP3_ENABLE : std_logic;
-	signal STEP3_PROD :CorrMatrixColumn;
-	signal STEP3_INPUT : std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
-	signal STEP3_DATA_VALID: std_logic;
-	
-	constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(500000000, CORRELATION_DATA_WIDTH));
-	
-	type state_type is (Idle,WriteVector, Step1,Step1Wait,Step2,Step2Wait,Step3);
-	signal State: state_type;
-	
-begin
----------------------------------------------------------------------------------	 
-	-- INSTANCES
----------------------------------------------------------------------------------
+	-- signal STEP1_ENABLE : std_logic;
+	-- signal STEP1_DOTPROD :CorrMatrixColumn;
+	-- signal STEP1_DATA_VALID: std_logic;
+	-- signal S_AXIS_TREADY_temp: std_logic;
 	
 	
-	OUTPUT_COLUMN <= COLUMN_OUT;
-	COMPONENT_IN  <= S_AXIS_TDATA;
-	OUTPUT_VALID  <= STEP3_DATA_VALID;
+	-- signal STEP2_ENABLE : std_logic;
+	-- signal STEP2_PROD :CorrMatrixColumn;
+	-- signal STEP2_INPUT : std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
+	-- signal STEP2_DATA_VALID: std_logic;
+	
+	-- signal TEMP_COLUMN_IN  : CorrMatrixColumn;
+	-- signal TEMP_COLUMN_OUT : CorrMatrixColumn;
+	-- signal TEMP_COLUMN_NUMBER: std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
+	-- signal TEMP_WRITE_ENABLE: std_logic;
+	
+	-- signal STEP3_ENABLE : std_logic;
+	-- signal STEP3_PROD :CorrMatrixColumn;
+	-- signal STEP3_INPUT : std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
+	-- signal STEP3_DATA_VALID: std_logic;
+	
+	-- constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(500000000, CORRELATION_DATA_WIDTH));
+	
+	-- type state_type is (Idle,WriteVector, Step1,Step1Wait,Step2,Step2Wait,Step3);
+	-- signal State: state_type;
+	
+-- begin
+-- ---------------------------------------------------------------------------------	 
+	-- -- INSTANCES
+-- ---------------------------------------------------------------------------------
+	
+	
+	-- OUTPUT_COLUMN <= COLUMN_OUT;
+	-- COMPONENT_IN  <= S_AXIS_TDATA;
+	-- OUTPUT_VALID  <= STEP3_DATA_VALID;
 	
 	
 	
-	InputPixelInst: entity work.InputPixel(Registers)
-		generic map (
-			NUM_BANDS           =>  NUM_BANDS,    
-			PIXEL_DATA_WIDTH    =>  PIXEL_DATA_WIDTH
-		)
-		port map (
-			CLK              =>   CLK,           
-			RESETN           =>   RESETN,        
-			WRITE_ENABLE 	 =>   COMPONENT_WRITE_ENABLE, 
-			COMPONENT_NUMBER =>   COMPONENT_NUMBER, 
-			COMPONENT_IN	 =>   COMPONENT_IN,	
-			COMPONENT_OUT	 =>   COMPONENT_OUT	  
-		);
+	-- InputPixelInst: entity work.InputPixel(Registers)
+		-- generic map (
+			-- NUM_BANDS           =>  NUM_BANDS,    
+			-- PIXEL_DATA_WIDTH    =>  PIXEL_DATA_WIDTH
+		-- )
+		-- port map (
+			-- CLK              =>   CLK,           
+			-- RESETN           =>   RESETN,        
+			-- WRITE_ENABLE 	 =>   COMPONENT_WRITE_ENABLE, 
+			-- COMPONENT_NUMBER =>   COMPONENT_NUMBER, 
+			-- COMPONENT_IN	 =>   COMPONENT_IN,	
+			-- COMPONENT_OUT	 =>   COMPONENT_OUT	  
+		-- );
 
-	CorrMatrixInst: entity work.CorrelationMatrix(Registers)  --CHANGE Registers architecture to BRAM if BRAM is preferred
-		generic map (
-			NUM_BANDS                 =>  NUM_BANDS,    
-			CORRELATION_DATA_WIDTH    =>  CORRELATION_DATA_WIDTH
-		)
-		port map (
-			CLK              =>   CLK,           
-			RESETN           =>   RESETN,        
-			WRITE_ENABLE 	 =>   COLUMN_WRITE_ENABLE, 
-			COLUMN_NUMBER 	 =>   COLUMN_NUMBER, 
-			COLUMN_IN		 =>   COLUMN_IN,	
-			COLUMN_OUT	     =>   COLUMN_OUT	  
-		);
+	-- CorrMatrixInst: entity work.CorrelationMatrix(Registers)  --CHANGE Registers architecture to BRAM if BRAM is preferred
+		-- generic map (
+			-- NUM_BANDS                 =>  NUM_BANDS,    
+			-- CORRELATION_DATA_WIDTH    =>  CORRELATION_DATA_WIDTH
+		-- )
+		-- port map (
+			-- CLK              =>   CLK,           
+			-- RESETN           =>   RESETN,        
+			-- WRITE_ENABLE 	 =>   COLUMN_WRITE_ENABLE, 
+			-- COLUMN_NUMBER 	 =>   COLUMN_NUMBER, 
+			-- COLUMN_IN		 =>   COLUMN_IN,	
+			-- COLUMN_OUT	     =>   COLUMN_OUT	  
+		-- );
 		
-	DotProductArrayInst: entity work.DotProductArray(Registers)
-		generic map (
-			NUM_BANDS       =>  NUM_BANDS,    
-			IN1_DATA_WIDTH  =>  PIXEL_DATA_WIDTH,
-			IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
-		)
-		port map (
-			CLK              =>   CLK,           
-			RESETN           =>   RESETN,        
-			ENABLE 		     =>   STEP1_ENABLE, 
-			IN1_COMPONENT	 =>   COMPONENT_OUT, 
-			IN2_COLUMN		 =>   COLUMN_OUT,	
-			COLUMN_OUT	     =>   STEP1_DOTPROD,	  
-			DATA_VALID	     =>	  STEP1_DATA_VALID
-		);
+	-- DotProductArrayInst: entity work.DotProductArray(Registers)
+		-- generic map (
+			-- NUM_BANDS       =>  NUM_BANDS,    
+			-- IN1_DATA_WIDTH  =>  PIXEL_DATA_WIDTH,
+			-- IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
+			-- OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
+		-- )
+		-- port map (
+			-- CLK              =>   CLK,           
+			-- RESETN           =>   RESETN,        
+			-- ENABLE 		     =>   STEP1_ENABLE, 
+			-- IN1_COMPONENT	 =>   COMPONENT_OUT, 
+			-- IN2_COLUMN		 =>   COLUMN_OUT,	
+			-- COLUMN_OUT	     =>   STEP1_DOTPROD,	  
+			-- DATA_VALID	     =>	  STEP1_DATA_VALID
+		-- );
 		
-	MultiplierArrayInst: entity work.MultiplierArray(Behavioral)
-		generic map (
-			NUM_BANDS       =>  NUM_BANDS,    
-			IN1_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
-		)
-		port map (
-			CLK              =>   CLK,           
-			RESETN           =>   RESETN,        
-			ENABLE 		     =>   STEP2_ENABLE, 
-			IN1_COMPONENT	 =>   STEP2_INPUT, 
-			IN2_COLUMN		 =>   STEP1_DOTPROD,	
-			COLUMN_OUT	     =>   STEP2_PROD,	  
-			DATA_VALID	     =>	  STEP2_DATA_VALID
-		);
+	-- MultiplierArrayInst: entity work.MultiplierArray(Behavioral)
+		-- generic map (
+			-- NUM_BANDS       =>  NUM_BANDS,    
+			-- IN1_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
+			-- IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
+			-- OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
+		-- )
+		-- port map (
+			-- CLK              =>   CLK,           
+			-- RESETN           =>   RESETN,        
+			-- ENABLE 		     =>   STEP2_ENABLE, 
+			-- IN1_COMPONENT	 =>   STEP2_INPUT, 
+			-- IN2_COLUMN		 =>   STEP1_DOTPROD,	
+			-- COLUMN_OUT	     =>   STEP2_PROD,	  
+			-- DATA_VALID	     =>	  STEP2_DATA_VALID
+		-- );
 		
-	TempMatrixInst: entity work.CorrelationMatrix(BRAM)   --CHANGE Registers architecture to BRAM if BRAM is preferred
-		generic map (
-			NUM_BANDS                 =>  NUM_BANDS,    
-			CORRELATION_DATA_WIDTH    =>  CORRELATION_DATA_WIDTH
-		)
-		port map (
-			CLK              =>   CLK,           
-			RESETN           =>   RESETN,        
-			WRITE_ENABLE 	 =>   TEMP_WRITE_ENABLE, 
-			COLUMN_NUMBER 	 =>   TEMP_COLUMN_NUMBER, 
-			COLUMN_IN		 =>   TEMP_COLUMN_IN,	
-			COLUMN_OUT	     =>   TEMP_COLUMN_OUT	  	
-		);
+	-- TempMatrixInst: entity work.CorrelationMatrix(BRAM)   --CHANGE Registers architecture to BRAM if BRAM is preferred
+		-- generic map (
+			-- NUM_BANDS                 =>  NUM_BANDS,    
+			-- CORRELATION_DATA_WIDTH    =>  CORRELATION_DATA_WIDTH
+		-- )
+		-- port map (
+			-- CLK              =>   CLK,           
+			-- RESETN           =>   RESETN,        
+			-- WRITE_ENABLE 	 =>   TEMP_WRITE_ENABLE, 
+			-- COLUMN_NUMBER 	 =>   TEMP_COLUMN_NUMBER, 
+			-- COLUMN_IN		 =>   TEMP_COLUMN_IN,	
+			-- COLUMN_OUT	     =>   TEMP_COLUMN_OUT	  	
+		-- );
 		
 		
-	MultiplierArrayInst2: entity work.MultiplierArray(Behavioral)
-		generic map (
-			NUM_BANDS       =>  NUM_BANDS,    
-			IN1_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
-		)
-		port map (
-			CLK              =>   CLK,           
-			RESETN           =>   RESETN,        
-			ENABLE 		     =>   STEP3_ENABLE, 
-			IN1_COMPONENT	 =>   STEP3_INPUT, 
-			IN2_COLUMN		 =>   TEMP_COLUMN_OUT,	
-			COLUMN_OUT	     =>   STEP3_PROD,	  
-			DATA_VALID	     =>	  STEP3_DATA_VALID
-		);
+	-- MultiplierArrayInst2: entity work.MultiplierArray(Behavioral)
+		-- generic map (
+			-- NUM_BANDS       =>  NUM_BANDS,    
+			-- IN1_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
+			-- IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
+			-- OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
+		-- )
+		-- port map (
+			-- CLK              =>   CLK,           
+			-- RESETN           =>   RESETN,        
+			-- ENABLE 		     =>   STEP3_ENABLE, 
+			-- IN1_COMPONENT	 =>   STEP3_INPUT, 
+			-- IN2_COLUMN		 =>   TEMP_COLUMN_OUT,	
+			-- COLUMN_OUT	     =>   STEP3_PROD,	  
+			-- DATA_VALID	     =>	  STEP3_DATA_VALID
+		-- );
 		
 
 		
----------------------------------------------------------------------------------	 
-	-- CONTROL LOGIC
----------------------------------------------------------------------------------		
 		
-	S_AXIS_TREADY <= S_AXIS_TREADY_temp;
-	COMPONENT_WRITE_ENABLE <= S_AXIS_TREADY_temp and S_AXIS_TVALID;	
-	TEMP_COLUMN_IN <= STEP2_PROD;
-	TEMP_WRITE_ENABLE <= STEP2_DATA_VALID;
-	COLUMN_WRITE_ENABLE <= STEP3_DATA_VALID;
-	
-	
-	process (COLUMN_OUT,STEP3_PROD) 
-	begin
-	
-		for i in 0 to NUM_BANDS-1 loop
+
 		
-			COLUMN_IN(i) <= std_logic_vector(signed(COLUMN_OUT(i)) - signed(STEP3_PROD(i)));
+-- ---------------------------------------------------------------------------------	 
+	-- -- CONTROL LOGIC
+-- ---------------------------------------------------------------------------------		
 		
-		end loop;
+	-- S_AXIS_TREADY <= S_AXIS_TREADY_temp;
+	-- COMPONENT_WRITE_ENABLE <= S_AXIS_TREADY_temp and S_AXIS_TVALID;	
+	-- TEMP_COLUMN_IN <= STEP2_PROD;
+	-- TEMP_WRITE_ENABLE <= STEP2_DATA_VALID;
+	-- COLUMN_WRITE_ENABLE <= STEP3_DATA_VALID;
 	
-	end process;
 	
-	states: process (CLK, RESETN)
-	variable counter: integer range 0 to NUM_BANDS + 3;
-	begin
-		if (rising_edge (CLK)) then
-			if (RESETN = '0') then
+	-- process (COLUMN_OUT,STEP3_PROD) 
+	-- begin
+	
+		-- for i in 0 to NUM_BANDS-1 loop
+		
+			-- COLUMN_IN(i) <= std_logic_vector(signed(COLUMN_OUT(i)) - signed(STEP3_PROD(i)));
+		
+		-- end loop;
+	
+	-- end process;
+	
+	-- states: process (CLK, RESETN)
+	-- variable counter: integer range 0 to NUM_BANDS + 3;
+	-- begin
+		-- if (rising_edge (CLK)) then
+			-- if (RESETN = '0') then
 				
-				state <= Idle;
-				counter := 0;
-				COMPONENT_NUMBER <= (others => '0');
-				COLUMN_NUMBER    <= (others => '0');
-				STEP2_INPUT      <= (others => '0');
-				STEP3_INPUT      <= (others => '0');
+				-- state <= Idle;
+				-- counter := 0;
+				-- COMPONENT_NUMBER <= (others => '0');
+				-- COLUMN_NUMBER    <= (others => '0');
+				-- STEP2_INPUT      <= (others => '0');
+				-- STEP3_INPUT      <= (others => '0');
 				
-			else
+			-- else
 		
-				case state is
+				-- case state is
 				
-					when Idle =>
+					-- when Idle =>
 					
-						if((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
+						-- if((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
 							
-							state <= WriteVector;
-							counter := counter + 1;
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- state <= WriteVector;
+							-- counter := counter + 1;
+							-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 							
-						end if;	
+						-- end if;	
 					
 					
-					when WriteVector =>
+					-- when WriteVector =>
 					
-						if (counter = NUM_BANDS - 1) then
-							counter  := 0;
-							state <= Step1;
-						else
-							counter := counter + 1;
-						end if;
+						-- if (counter = NUM_BANDS - 1) then
+							-- counter  := 0;
+							-- state <= Step1;
+						-- else
+							-- counter := counter + 1;
+						-- end if;
 						
-						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 					
-					when Step1 =>
+					-- when Step1 =>
 					
-						if (counter = NUM_BANDS + 2) then
-							counter := 0;
-							state <= Step1Wait;
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						-- if (counter = NUM_BANDS + 2) then
+							-- counter := 0;
+							-- state <= Step1Wait;
+							-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
-						elsif( counter >= NUM_BANDS - 1) then 
+						-- elsif( counter >= NUM_BANDS - 1) then 
 							
-							counter := counter + 1;
-							COMPONENT_NUMBER <= (others => '0');
-							COLUMN_NUMBER    <= (others => '0');
+							-- counter := counter + 1;
+							-- COMPONENT_NUMBER <= (others => '0');
+							-- COLUMN_NUMBER    <= (others => '0');
 							
-						else
-							counter := counter + 1;
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-						end if;
+						-- else
+							-- counter := counter + 1;
+							-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						-- end if;
 						
-					when Step1Wait => 	
+					-- when Step1Wait => 	
 					
-						state <= Step2;
-						STEP2_INPUT <= STEP1_DOTPROD (counter);
+						-- state <= Step2;
+						-- STEP2_INPUT <= STEP1_DOTPROD (counter);
 						
-					when Step2 =>
+					-- when Step2 =>
 					
-						if(counter = NUM_BANDS + 1) then
+						-- if(counter = NUM_BANDS + 1) then
 					
-							counter := 0; 
-							state <= Step2Wait;
+							-- counter := 0; 
+							-- state <= Step2Wait;
 
-						elsif( counter >= NUM_BANDS - 1) then 
+						-- elsif( counter >= NUM_BANDS - 1) then 
 						
-							counter := counter + 1;
+							-- counter := counter + 1;
 						
-						else
+						-- else
 						
-							counter := counter + 1;
-							STEP2_INPUT <= STEP1_DOTPROD (counter);
+							-- counter := counter + 1;
+							-- STEP2_INPUT <= STEP1_DOTPROD (counter);
 							
-						end if;	
+						-- end if;	
 						
-					when Step2Wait => 
+					-- when Step2Wait => 
 
-						state <= Step3;
-						STEP3_INPUT <= vectornumb;
+						-- state <= Step3;
+						-- STEP3_INPUT <= vectornumb;
 						
-					when Step3 => 
+					-- when Step3 => 
 
-						if (counter >= NUM_BANDS - 1) then
-							counter := 0;
-							state <= Step1;
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						-- if (counter >= NUM_BANDS - 1) then
+							-- counter := 0;
+							-- state <= Step1;
+							-- COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
-						elsif ( STEP3_DATA_VALID = '1') then 
+						-- elsif ( STEP3_DATA_VALID = '1') then 
 							
-							counter := counter + 1;
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- counter := counter + 1;
+							-- COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
-						else 
+						-- else 
 						
-							counter := 0;
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- counter := 0;
+							-- COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							-- COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
-						end if;
+						-- end if;
 
 						
-					when others =>
+					-- when others =>
 					
-						state <= Idle;
+						-- state <= Idle;
 					
 					
-				end case;	
+				-- end case;	
 		
 		
 		
-			end if;
-		end if;
+			-- end if;
+		-- end if;
 
-	end process states; 
+	-- end process states; 
 	
 	
-	comb_proc: process(state,STEP3_DATA_VALID)
-    begin
-        case state is
+	-- comb_proc: process(state,STEP3_DATA_VALID)
+    -- begin
+        -- case state is
            
 
-		    when Idle =>
+		    -- when Idle =>
 			
-				S_AXIS_TREADY_temp <= '1';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+				-- S_AXIS_TREADY_temp <= '1';
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '0';
+				-- STEP3_ENABLE <= '0';
 			
-			when WriteVector => 
+			-- when WriteVector => 
 			
-				S_AXIS_TREADY_temp <= '1';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+				-- S_AXIS_TREADY_temp <= '1';
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '0';
+				-- STEP3_ENABLE <= '0';
 			
-			when Step1 =>
+			-- when Step1 =>
 			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '1';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+				-- S_AXIS_TREADY_temp <= '0';
+				-- STEP1_ENABLE <= '1';
+				-- STEP2_ENABLE <= '0';
+				-- STEP3_ENABLE <= '0';
 				
-			when Step1Wait =>
+			-- when Step1Wait =>
 			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+				-- S_AXIS_TREADY_temp <= '0';
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '0';
+				-- STEP3_ENABLE <= '0';
 			
-			when Step2 =>
+			-- when Step2 =>
 			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '1';
-				STEP3_ENABLE <= '0';				
+				-- S_AXIS_TREADY_temp <= '0';
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '1';
+				-- STEP3_ENABLE <= '0';				
 				
-			when Step2Wait =>
+			-- when Step2Wait =>
 			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';	
-				STEP3_ENABLE <= '0';
+				-- S_AXIS_TREADY_temp <= '0';
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '0';	
+				-- STEP3_ENABLE <= '0';
 				
-			when Step3 =>
+			-- when Step3 =>
 		
-				if(STEP3_DATA_VALID = '1') then
-					S_AXIS_TREADY_temp <= '1'; --simultaneous write
-				else 
-					S_AXIS_TREADY_temp <= '0';
-				end if;	
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '1';				
+				-- if(STEP3_DATA_VALID = '1') then
+					-- S_AXIS_TREADY_temp <= '1'; --simultaneous write
+				-- else 
+					-- S_AXIS_TREADY_temp <= '0';
+				-- end if;	
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '0';
+				-- STEP3_ENABLE <= '1';				
 				
-			when others =>
+			-- when others =>
 			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+				-- S_AXIS_TREADY_temp <= '0';
+				-- STEP1_ENABLE <= '0';
+				-- STEP2_ENABLE <= '0';
+				-- STEP3_ENABLE <= '0';
 				
-        end case;
-    end process comb_proc;
+        -- end case;
+    -- end process comb_proc;
 	
 	
-	process (CLK, RESETN)
-	begin
-		if (rising_edge (CLK)) then
-			if (RESETN = '0') then
+	-- process (CLK, RESETN)
+	-- begin
+		-- if (rising_edge (CLK)) then
+			-- if (RESETN = '0') then
 				
-				TEMP_COLUMN_NUMBER <= (others => '0');
+				-- TEMP_COLUMN_NUMBER <= (others => '0');
 				
-			else
+			-- else
 		
-				if(TEMP_WRITE_ENABLE = '1' or STEP3_ENABLE = '1') then
+				-- if(TEMP_WRITE_ENABLE = '1' or STEP3_ENABLE = '1') then
 				
-					TEMP_COLUMN_NUMBER <= std_logic_vector(unsigned(TEMP_COLUMN_NUMBER)+1);
+					-- TEMP_COLUMN_NUMBER <= std_logic_vector(unsigned(TEMP_COLUMN_NUMBER)+1);
 				
-				else
+				-- else
 				
-					TEMP_COLUMN_NUMBER <= (others => '0');
+					-- TEMP_COLUMN_NUMBER <= (others => '0');
 				
-				end if;
+				-- end if;
 		
 		
-			end if;
-		end if;
+			-- end if;
+		-- end if;
 
-	end process;
+	-- end process;
 	
 
-end Registers;
+-- end Registers;
 
 ---------------------------------------------------------------------------------	 
 	-- ARCHITECTURE BRAM
@@ -486,7 +501,20 @@ architecture BRAM of ShermanMorrisonTopLevel is
 	signal MULT_ARRAY_OUT    : CorrMatrixColumn;
 	signal MULT_ARRAY_VALID  : std_logic;
 	
-	constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(500000000, CORRELATION_DATA_WIDTH));
+	signal STEP2_DIV_IN_VALID: std_logic;
+	signal DIV_CLEAR :std_logic;
+	signal STEP2_ENABLE_dly : std_logic;
+	signal STEP2_ENABLE_DIV : std_logic;
+	
+	
+	constant ACCUMULATOR_WIDTH: positive :=  (integer(ceil(log2(real(NUM_BANDS)))) + PIXEL_DATA_WIDTH + CORRELATION_DATA_WIDTH - 1);
+	signal STEP2_DIV_IN    : std_logic_vector(ACCUMULATOR_WIDTH -1 downto 0);
+	
+	
+	signal ENABLE_INPUT :std_logic;
+	signal ENABLE_STEP3 :std_logic;
+	
+	constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(214748, CORRELATION_DATA_WIDTH));
 	
 	type state_type is (Idle,WriteVector, Step1Fetch, Step1,Step1Wait,Step2Fetch,Step2,Step2Wait,Step3Fetch,Step3);
 	signal State: state_type;
@@ -497,13 +525,16 @@ begin
 ---------------------------------------------------------------------------------
 	
 	
-	OUTPUT_COLUMN <= COLUMN_OUT;
+	--OUTPUT_COLUMN <= COLUMN_OUT;
 	COMPONENT_IN  <= S_AXIS_TDATA;
-	OUTPUT_VALID  <= STEP3_DATA_VALID;
+	--OUTPUT_VALID  <= STEP3_DATA_VALID;
+	M_DIV_AXIS_TDATA  <= STEP2_DIV_IN (ACCUMULATOR_WIDTH-1  downto ACCUMULATOR_WIDTH-OUT_DATA_WIDTH);
+	M_DIV_AXIS_TVALID <= STEP2_DIV_IN_VALID;
+	
+	--S_DIV_AXIS_TREADY <= '1';
 	
 	
-	
-	InputPixelInst: entity work.InputPixel(Registers)
+	InputPixelInst: entity work.InputPixel(BRAM)
 		generic map (
 			NUM_BANDS           =>  NUM_BANDS,    
 			PIXEL_DATA_WIDTH    =>  PIXEL_DATA_WIDTH
@@ -580,40 +611,39 @@ begin
 		);
 		
 		
-	-- MultiplierArrayInst: entity work.MultiplierArray(Behavioral)
-		-- generic map (
-			-- NUM_BANDS       =>  NUM_BANDS,    
-			-- IN1_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			-- IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			-- OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
-		-- )
-		-- port map (
-			-- CLK              =>   CLK,           
-			-- RESETN           =>   RESETN,        
-			-- ENABLE 		     =>   STEP2_ENABLE, 
-			-- IN1_COMPONENT	 =>   STEP2_INPUT, 
-			-- IN2_COLUMN		 =>   STEP1_DOTPROD,	
-			-- COLUMN_OUT	     =>   STEP2_PROD,	  
-			-- DATA_VALID	     =>	  STEP2_DATA_VALID
-		-- );	
-		
-		
-	-- MultiplierArrayInst2: entity work.MultiplierArray(Behavioral)
-		-- generic map (
-			-- NUM_BANDS       =>  NUM_BANDS,    
-			-- IN1_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			-- IN2_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH,
-			-- OUT_DATA_WIDTH  =>  CORRELATION_DATA_WIDTH
-		-- )
-		-- port map (
-			-- CLK              =>   CLK,           
-			-- RESETN           =>   RESETN,        
-			-- ENABLE 		     =>   STEP3_ENABLE, 
-			-- IN1_COMPONENT	 =>   STEP3_INPUT, 
-			-- IN2_COLUMN		 =>   TEMP_COLUMN_OUT,	
-			-- COLUMN_OUT	     =>   STEP3_PROD,	  
-			-- DATA_VALID	     =>	  STEP3_DATA_VALID
-		-- );
+	--ADDED FOR DIVIDER
+
+
+	dp_datapath_sm_inst_st2 : entity work.dp_datapath_sm(Behavioral)
+		generic map(
+			bit_depth_1 => PIXEL_DATA_WIDTH,
+			bit_depth_2 => CORRELATION_DATA_WIDTH,
+			p_bit_width => ACCUMULATOR_WIDTH
+		)
+		port map(
+			clk     => CLK,
+			en      => STEP2_ENABLE_DIV,
+			clear   => DIV_CLEAR,
+			reset_n => RESETN,
+			in_1    => COMPONENT_OUT,
+			in_2    => STEP2_INPUT,
+			p       => STEP2_DIV_IN
+		);
+	
+
+
+	dp_controller_sm_inst_st2 : entity work.dp_controller_sm(Behavioral)
+		generic map(
+			V_LEN => NUM_BANDS
+		)
+		port map(
+			clk     => CLK,
+			en      => STEP2_ENABLE_DIV,
+			reset_n => RESETN,
+			p_rdy   => STEP2_DIV_IN_VALID,
+			clear   => DIV_CLEAR
+		);
+	
 		
 
 		
@@ -628,9 +658,11 @@ begin
 	COLUMN_WRITE_ENABLE <= '1' when ((STEP3_DATA_VALID = '1') or (state = Idle) or (state = WriteVector)) else '0';
 	
 	
+	STEP2_ENABLE_DIV <= STEP2_ENABLE or STEP2_ENABLE_dly;
+	
 	--SHARED MULT ARRAY
 	
-	MULT_ARRAY_ENABLE <= STEP2_ENABLE or STEP3_ENABLE;
+	MULT_ARRAY_ENABLE   <= STEP2_ENABLE or STEP3_ENABLE;
 	MULT_ARRAY_IN1 		<= STEP2_INPUT when (state = Step2) else STEP3_INPUT;
 	MULT_ARRAY_IN2 		<= STEP1_DOTPROD when (state = Step2) else TEMP_COLUMN_OUT;
 	
@@ -680,16 +712,20 @@ begin
 	
 	states: process (CLK, RESETN)
 	variable counter: integer range 0 to NUM_BANDS + 3;
+	variable pix_counter: integer range 0 to NUM_BANDS;
 	begin
 		if (rising_edge (CLK)) then
 			if (RESETN = '0') then
 				
 				state <= Idle;
 				counter := 0;
+				pix_counter := 0;
 				COMPONENT_NUMBER <= (others => '0');
 				COLUMN_NUMBER    <= (others => '0');
 				STEP2_INPUT      <= (others => '0');
 				STEP3_INPUT      <= (others => '0');
+				ENABLE_INPUT     <= '0';
+				ENABLE_STEP3	 <= '0';
 				
 			else
 		
@@ -710,10 +746,14 @@ begin
 					when WriteVector =>
 					
 						if (counter = NUM_BANDS - 1) then
+						
 							counter  := 0;
 							state <= Step1Fetch;
-						else
+							
+						elsif ((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
+						
 							counter := counter + 1;
+							
 						end if;
 						
 						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
@@ -723,12 +763,14 @@ begin
 
 						state <= Step1;
 						counter := counter + 1;
+						
 						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
 					when Step1 =>
 					
 						if (counter = NUM_BANDS + 2) then
+						
 							counter := 0;
 							state <= Step1Wait;
 							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
@@ -741,14 +783,17 @@ begin
 							COLUMN_NUMBER    <= (others => '0');
 							
 						else
+						
 							counter := counter + 1;
 							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+							
 						end if;
 						
 					when Step1Wait => 	
 					
 						state <= Step2Fetch;
+						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
 						
 					when Step2Fetch => 	
@@ -756,6 +801,7 @@ begin
 						state <= Step2;
 						counter := 0;
 						STEP2_INPUT <= STEP1_DOTPROD (counter);
+						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter+1,COMPONENT_NUMBER'length));
 						
 					when Step2 =>
 					
@@ -772,13 +818,17 @@ begin
 						
 							counter := counter + 1;
 							STEP2_INPUT <= STEP1_DOTPROD (counter);
+							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter+1,COMPONENT_NUMBER'length));
 							
 						end if;	
 						
 					when Step2Wait => 
 
-						state <= Step3Fetch;
-						STEP3_INPUT <= vectornumb;
+						--waiting for division to finish
+						if( S_DIV_AXIS_TVALID = '1') then
+							state <= Step3Fetch;
+							STEP3_INPUT <= S_DIV_AXIS_TDATA (CORRELATION_DATA_WIDTH - 1 downto 0);
+						end if;	
 						
 					when Step3Fetch => 	
 						
@@ -786,28 +836,52 @@ begin
 						counter := 0;
 						COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						ENABLE_INPUT <= '1';
+						ENABLE_STEP3 <= '1';
 						
 					when Step3 => 
 
 						if (counter >= NUM_BANDS - 1) then
+						
 							counter := 0;
-							state <= Step1;
+							ENABLE_STEP3 <= '0';
 							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						--	COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
 						elsif ( STEP3_DATA_VALID = '1') then 
 							
 							counter := counter + 1;
 							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						--	COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
 						else 
 						
 							counter := 0;
 							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
+						--	COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 						
 						end if;
+						
+						if (pix_counter = NUM_BANDS - 1) then
+							
+							pix_counter  := 0;
+							ENABLE_INPUT <= '0';
+							
+						elsif ((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
+						
+							pix_counter := pix_counter + 1;
+							
+						end if;
+						
+						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(pix_counter,COMPONENT_NUMBER'length));
+						
+						
+						--both have finished, we can proceed
+						if (ENABLE_STEP3 = '0' and ENABLE_INPUT = '0') then
+						
+							state <= Step1;
+							
+						end if;	
 
 						
 					when others =>
@@ -825,7 +899,7 @@ begin
 	end process states; 
 	
 	
-	comb_proc: process(state,STEP3_DATA_VALID)
+	comb_proc: process(state,STEP3_DATA_VALID,ENABLE_INPUT,ENABLE_STEP3)
     begin
         case state is
            
@@ -895,14 +969,21 @@ begin
 				
 			when Step3 =>
 		
-				if(STEP3_DATA_VALID = '1') then
+				if(ENABLE_INPUT = '1') then
 					S_AXIS_TREADY_temp <= '1'; --simultaneous write
 				else 
 					S_AXIS_TREADY_temp <= '0';
 				end if;	
+				
 				STEP1_ENABLE <= '0';
 				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '1';				
+				
+				if(ENABLE_STEP3 = '1') then
+					STEP3_ENABLE <= '1';		
+				else 
+					STEP3_ENABLE <= '0';
+				end if;					
+			
 				
 			when others =>
 			
@@ -920,9 +1001,12 @@ begin
 		if (rising_edge (CLK)) then
 			if (RESETN = '0') then
 				
+				STEP2_ENABLE_dly <= '0';
 				TEMP_COLUMN_NUMBER <= (others => '0');
 				
 			else
+			
+				STEP2_ENABLE_dly <= STEP2_ENABLE;
 		
 				if(TEMP_WRITE_ENABLE = '1' or STEP3_ENABLE = '1') then
 				
