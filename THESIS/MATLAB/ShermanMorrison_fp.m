@@ -14,8 +14,8 @@ function [Anew]=ShermanMorrison_fp(A,u,v,neg)
         
         d = (u'*Rx/2^19);
         div = 1/(d+1);
-        
-        T= RxxR * div;
+        a = fi(div, 1, 39, 31);
+        T= floor(RxxR * bin2dec(bin(a)));
         
         Anew = A - T;
     
