@@ -1,0 +1,2 @@
+launch_simulation
+source ShermanMorrison_testbench.tcl
