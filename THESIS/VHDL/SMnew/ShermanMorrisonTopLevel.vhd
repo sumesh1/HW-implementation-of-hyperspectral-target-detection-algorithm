@@ -54,8 +54,8 @@ entity ShermanMorrisonTopLevel is
 		M_DIV_AXIS_TDATA     : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 		M_DIV_AXIS_TVALID    : out std_logic;
 		
-		INPUT_COLUMN	 	: in std_logic_vector(NUM_BANDS*CORRELATION_DATA_WIDTH - 1 downto 0)
-		
+		INPUT_COLUMN	 	 : in std_logic_vector(NUM_BANDS*CORRELATION_DATA_WIDTH - 1 downto 0);
+		INPUT_COLUMN_VALID   : in std_logic
 		-- OUTPUT_COLUMN	 : out CorrMatrixColumn;
 		-- OUTPUT_VALID     : out std_logic;
 		-- OUTPUT_DATA		 : out std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
@@ -519,7 +519,7 @@ architecture BRAM of ShermanMorrisonTopLevel is
 	
 	constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(214748, CORRELATION_DATA_WIDTH));
 	
-	type state_type is (Idle,WriteVector, Step1Fetch, Step1,Step1Wait,Step2Fetch,Step2,Step2Wait,Step3Fetch,Step3);
+	type state_type is (Idle,InitializeMatrix,WaitForStart, WriteVector, Step1Fetch, Step1,Step1Wait,Step2Fetch,Step2,Step2Wait,Step3Fetch,Step3);
 	signal State: state_type;
 	
 begin
@@ -664,15 +664,15 @@ begin
 	S_AXIS_TREADY 			<= S_AXIS_TREADY_temp;
 	COMPONENT_WRITE_ENABLE 	<= S_AXIS_TREADY_temp and S_AXIS_TVALID;	
 	TEMP_COLUMN_IN 			<= STEP2_PROD;
-	TEMP_WRITE_ENABLE 		<= STEP2_DATA_VALID when ENABLE_CORE = '1' else '0';
-	COLUMN_WRITE_ENABLE 	<= '1' when (ENABLE_CORE = '1' and ((STEP3_DATA_VALID = '1') or (state = Idle) or (state = WriteVector))) else '0';
+	TEMP_WRITE_ENABLE 		<= STEP2_DATA_VALID;
+	COLUMN_WRITE_ENABLE 	<= '1' when ((STEP3_DATA_VALID = '1') or (INPUT_COLUMN_VALID = '1' and ((state = Idle) or (state = InitializeMatrix)))) else '0';
 	
 	
-	STEP2_ENABLE_DIV 	<= '1' when ( ENABLE_CORE = '1' and (STEP2_ENABLE = '1' or STEP2_ENABLE_dly = '1')) else '0';
+	STEP2_ENABLE_DIV 	<= STEP2_ENABLE  or STEP2_ENABLE_dly ;
 	
 	--SHARED MULT ARRAY
 	
-	MULT_ARRAY_ENABLE   <= '1' when ( ENABLE_CORE = '1' and (STEP2_ENABLE ='1' or STEP3_ENABLE = '1')) else '0';
+	MULT_ARRAY_ENABLE   <=  STEP2_ENABLE  or STEP3_ENABLE ;
 	MULT_ARRAY_IN1 		<= STEP2_INPUT when (state = Step2) else STEP3_INPUT;
 	MULT_ARRAY_IN2 		<= STEP1_DOTPROD when (state = Step2) else TEMP_COLUMN_OUT;
 	
@@ -699,7 +699,7 @@ begin
 				end loop;
 			
 			--for initialization
-			when WriteVector => 
+			when InitializeMatrix => 
 				
 				for i in 0 to NUM_BANDS-1 loop
 				
@@ -739,21 +739,45 @@ begin
 				ENABLE_INPUT     <= '0';
 				ENABLE_STEP3	 <= '0';
 				
-			elsif (ENABLE_CORE	= '1') then
+			else
 		
 				case state is
 				
 					when Idle =>
+							
+						if( INPUT_COLUMN_VALID = '1') then 
+						
+							--counter := counter + 1;
+							state <= InitializeMatrix;
+							
+						end if;
+						
+								
+					when InitializeMatrix => 
+						
+						if (counter = NUM_BANDS - 1) then 
+						
+							counter := 0;
+							state <= WaitForStart;	
+				
+						elsif( INPUT_COLUMN_VALID = '1') then 
+							
+							counter := counter + 1;
+							
+						end if;
+						
+						COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length)); 
+
+					when WaitForStart => 
 					
 						if((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
 							
 							state <= WriteVector;
 							counter := counter + 1;
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length)); --for initialization
 							
-						end if;	
+						end if;
 					
+						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 					
 					when WriteVector =>
 					
@@ -769,7 +793,6 @@ begin
 						end if;
 						
 						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-						COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length)); --for initialization
 						
 					when Step1Fetch =>
 
@@ -912,15 +935,33 @@ begin
 	
 
 --COMBINATORIAL PROCESS OF THE STATE MACHINE	
-	comb_proc: process(state,STEP3_DATA_VALID,ENABLE_INPUT,ENABLE_STEP3,ENABLE_CORE)
+	comb_proc: process(state,STEP3_DATA_VALID,ENABLE_INPUT, ENABLE_STEP3, ENABLE_CORE)
     begin
         
-		if(ENABLE_CORE = '1') then 
 			case state is
 			  
 				when Idle =>
 				
-					S_AXIS_TREADY_temp <= '1';
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when InitializeMatrix =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when WaitForStart =>
+				
+					if(ENABLE_CORE = '1') then 
+						S_AXIS_TREADY_temp <= '1';
+					else
+						S_AXIS_TREADY_temp <= '0';
+					end if;
+					
 					STEP1_ENABLE <= '0';
 					STEP2_ENABLE <= '0';
 					STEP3_ENABLE <= '0';
@@ -1008,14 +1049,6 @@ begin
 					
 			end case;
 	
-		else
-			
-			S_AXIS_TREADY_temp <= '0';
-			STEP1_ENABLE <= '0';
-			STEP2_ENABLE <= '0';
-			STEP3_ENABLE <= '0';
-			
-		end if;
 		
 		
     end process comb_proc;

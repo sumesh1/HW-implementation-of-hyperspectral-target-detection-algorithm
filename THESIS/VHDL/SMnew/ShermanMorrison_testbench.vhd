@@ -53,7 +53,9 @@ architecture Behavioral of ShermanMorrison_testbench is
 	signal S_AXIS_DIVIDEND_tdata  : STD_LOGIC_VECTOR ( 7 downto 0 );
 --	signal S_AXIS_DIVIDEND_tready : std_logic;
 	signal S_AXIS_DIVIDEND_tvalid : std_logic;
-	signal INPUT_COLUMN 		  :std_logic_vector(NUM_BANDS *CORRELATION_DATA_WIDTH -1 downto 0);
+	signal INPUT_COLUMN 		  : std_logic_vector(NUM_BANDS *CORRELATION_DATA_WIDTH -1 downto 0);
+	signal INPUT_COLUMN_VALID	  : std_logic;
+	
 	
 	signal END_SIMULATION : std_logic := '0';
 	
@@ -126,8 +128,8 @@ SMWRAPPERINSTANCE: entity WORK.sys_wrapper(STRUCTURE)
 		S_AXIS_DIVIDEND_tdata   =>  S_AXIS_DIVIDEND_tdata ,
 		-- S_AXIS_DIVIDEND_tready  =>  S_AXIS_DIVIDEND_tready,
 		S_AXIS_DIVIDEND_tvalid  =>  S_AXIS_DIVIDEND_tvalid,
-		INPUT_COLUMN => INPUT_COLUMN
-
+		INPUT_COLUMN => INPUT_COLUMN,
+		INPUT_COLUMN_VALID  => INPUT_COLUMN_VALID
 	);
 		
 
@@ -162,11 +164,27 @@ SMWRAPPERINSTANCE: entity WORK.sys_wrapper(STRUCTURE)
 	
 		S_AXIS_TVALID <= '0';
 		ENABLE_CORE <= '0';
+		INPUT_COLUMN_VALID <= '0';
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
 		wait until CLK = '1' and CLK'event;
 		
-		S_AXIS_TVALID <= '1';
+		wait for 500 NS;
+		INPUT_COLUMN_VALID <= '1';
+		wait for 20 NS; 
+		INPUT_COLUMN_VALID <= '0';
+		wait for 20 NS; 
+		INPUT_COLUMN_VALID <= '1';
+		wait for 20 NS; 
+		INPUT_COLUMN_VALID <= '0';
+		wait for 20 NS; 
+		INPUT_COLUMN_VALID <= '1';
+		wait for 20 NS; 
+		INPUT_COLUMN_VALID <= '0';
+		wait for 300 NS;
+		INPUT_COLUMN_VALID <= '1';
+		
+		S_AXIS_TVALID <= '0';
 		--S_AXIS_TLAST  <= '0';
 		S_AXIS_DIVIDEND_tvalid <= '1';
 		S_AXIS_DIVIDEND_tdata <= "00000001"; --reciprocal
@@ -177,6 +195,7 @@ SMWRAPPERINSTANCE: entity WORK.sys_wrapper(STRUCTURE)
 		ENABLE_CORE <= '0';
 		wait for 5000 NS;
 		ENABLE_CORE <= '1';
+		S_AXIS_TVALID <= '1';
 		-- wait for 200 NS;
 		-- S_AXIS_TVALID <= '0';
 		-- wait for 300 NS;
