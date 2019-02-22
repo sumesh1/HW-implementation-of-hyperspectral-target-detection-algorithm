@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results] = hyperAceR_NT(M,S,gt,value)
+function [results] = hyperAceR_NT(M,S,gt,index)
 % HYPERACER Performs the adaptive cosin/coherent estimator algorithm with correlation MATRIX!
 
 % Usage
@@ -16,13 +16,13 @@ function [results] = hyperAceR_NT(M,S,gt,value)
     
     %choose only non target pixels for R
 	
-    gt2d = hyperConvert2d(gt);
-    
+    %gt2d = hyperConvert2d(gt);
+    gt2d = reshape(gt',[1,numel(gt)]);
     R = 0;
     
     for i = 1:N
        
-       if(gt2d(i) ~= value)
+       if(gt2d(i) ~= index)
          x = M(:,i);  
          R = R + x*x';
        end
@@ -31,16 +31,18 @@ function [results] = hyperAceR_NT(M,S,gt,value)
         
     R = R/N;
     
-    G=inv(R);
+    G = inv(R);
 
 	results = zeros(1, N);
 	
-	tmp = (S.'*G*S);
+    tmp2 = S.'*G;
+	tmp = (tmp2*S);
 	
+    
 	for k=1:N
 		
 		x = M(:,k);
-		results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
+		results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
 		
 	end
 

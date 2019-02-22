@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results,mapexcluded] = hyperAceR_RTA01(M, S)
+function [results,mapexcluded] = hyperCem_RTA03(M, S)
 % HYPERACE Performs the adaptive cosin/coherent estimator algorithm
 % EXCLUDES DETECTED PIXELS FROM UPDATED CORRELATION MATRIX
 % REAL TIME ALGORITHM IN HW
@@ -13,14 +13,12 @@ function [results,mapexcluded] = hyperAceR_RTA01(M, S)
 % Outputs
 %   results - vector of detector output (N x 1)
  
-    th = 0.1;
+      th = 0.3;
 
 	[p, N] = size(M);
     t = round(N/100);
 	results = zeros(1, N);
 	
-    
-    
 	R = M(:,1)*M(:,1)';
 	G = pinv(R);
     res_mean = 0;
@@ -32,9 +30,11 @@ function [results,mapexcluded] = hyperAceR_RTA01(M, S)
 	for k = 1:N
 		
 		x = M(:,k);
-		tmp = (S.'*G*S);
+		tmp2 = S.'*G;
+        tmp = (tmp2*S);
+	
 	 
-		results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
+		results(k) = (tmp2*x) / (tmp);
 	  
          if(k > t) 
             res_mean = mean(results((k-t):(k-1)));         
@@ -55,7 +55,7 @@ function [results,mapexcluded] = hyperAceR_RTA01(M, S)
         end	
         
         % waitbar(k/N,h,'updated');
-
+	
     end
 
 end

@@ -1,6 +1,6 @@
 function [result] = hyperRXR(M)
 %HYPERRX RX anomaly detector
-%   hyperRxDetector performs the RX anomaly detector
+%   hyperRxDetector performs the RX anomaly detector with Correlation
 %
 % Usage
 %   [result] = hyperRxDetector(M)
