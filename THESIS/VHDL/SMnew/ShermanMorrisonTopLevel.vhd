@@ -38,6 +38,7 @@ entity ShermanMorrisonTopLevel is
 
 		CLK              : in std_logic;
 		RESETN           : in std_logic;
+		ENABLE_CORE		 : in std_logic;
 		S_AXIS_TREADY    : out std_logic;
 		S_AXIS_TDATA     : in std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 		--S_AXIS_TLAST     : in std_logic;
@@ -51,8 +52,10 @@ entity ShermanMorrisonTopLevel is
 		
 		--M_DIV_AXIS_TREADY    : in std_logic;
 		M_DIV_AXIS_TDATA     : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
-		M_DIV_AXIS_TVALID    : out std_logic
+		M_DIV_AXIS_TVALID    : out std_logic;
 		
+		INPUT_COLUMN	 	 : in std_logic_vector(NUM_BANDS*CORRELATION_DATA_WIDTH - 1 downto 0);
+		INPUT_COLUMN_VALID   : in std_logic
 		-- OUTPUT_COLUMN	 : out CorrMatrixColumn;
 		-- OUTPUT_VALID     : out std_logic;
 		-- OUTPUT_DATA		 : out std_logic_vector(OUT_DATA_WIDTH-1 downto 0);
@@ -516,13 +519,21 @@ architecture BRAM of ShermanMorrisonTopLevel is
 	
 	constant vectornumb: std_logic_vector (CORRELATION_DATA_WIDTH-1 downto 0) := std_logic_vector(to_unsigned(214748, CORRELATION_DATA_WIDTH));
 	
-	type state_type is (Idle,WriteVector, Step1Fetch, Step1,Step1Wait,Step2Fetch,Step2,Step2Wait,Step3Fetch,Step3);
+	type state_type is (Idle,InitializeMatrix,WaitForStart, WriteVector, Step1Fetch, Step1,Step1Wait,Step2Fetch,Step2,Step2Wait,Step3Fetch,Step3);
 	signal State: state_type;
 	
 begin
 ---------------------------------------------------------------------------------	 
 	-- INSTANCES
 ---------------------------------------------------------------------------------
+	
+	--SIMULATION GLOBAL VARIABLES FOR EXTRACTION TO FILES
+	STEP1_RESULT	   <= STEP1_DOTPROD;
+	STEP1_RESULT_VALID <= STEP1_DATA_VALID;
+	STEP2_RESULT       <= STEP2_PROD;
+	STEP2_RESULT_VALID <= STEP2_DATA_VALID;
+	STEP3_RESULT       <= COLUMN_IN;
+	STEP3_RESULT_VALID <= COLUMN_WRITE_ENABLE;
 	
 	
 	--OUTPUT_COLUMN <= COLUMN_OUT;
@@ -532,6 +543,7 @@ begin
 	M_DIV_AXIS_TVALID <= STEP2_DIV_IN_VALID;
 	
 	--S_DIV_AXIS_TREADY <= '1';
+	
 	
 	
 	InputPixelInst: entity work.InputPixel(BRAM)
@@ -612,8 +624,6 @@ begin
 		
 		
 	--ADDED FOR DIVIDER
-
-
 	dp_datapath_sm_inst_st2 : entity work.dp_datapath_sm(Behavioral)
 		generic map(
 			bit_depth_1 => PIXEL_DATA_WIDTH,
@@ -651,18 +661,18 @@ begin
 	-- CONTROL LOGIC
 ---------------------------------------------------------------------------------		
 		
-	S_AXIS_TREADY <= S_AXIS_TREADY_temp;
-	COMPONENT_WRITE_ENABLE <= S_AXIS_TREADY_temp and S_AXIS_TVALID;	
-	TEMP_COLUMN_IN <= STEP2_PROD;
-	TEMP_WRITE_ENABLE <= STEP2_DATA_VALID;
-	COLUMN_WRITE_ENABLE <= '1' when ((STEP3_DATA_VALID = '1') or (state = Idle) or (state = WriteVector)) else '0';
+	S_AXIS_TREADY 			<= S_AXIS_TREADY_temp;
+	COMPONENT_WRITE_ENABLE 	<= S_AXIS_TREADY_temp and S_AXIS_TVALID;	
+	TEMP_COLUMN_IN 			<= STEP2_PROD;
+	TEMP_WRITE_ENABLE 		<= STEP2_DATA_VALID;
+	COLUMN_WRITE_ENABLE 	<= '1' when ((STEP3_DATA_VALID = '1') or (INPUT_COLUMN_VALID = '1' and ((state = Idle) or (state = InitializeMatrix)))) else '0';
 	
 	
-	STEP2_ENABLE_DIV <= STEP2_ENABLE or STEP2_ENABLE_dly;
+	STEP2_ENABLE_DIV 	<= STEP2_ENABLE  or STEP2_ENABLE_dly ;
 	
 	--SHARED MULT ARRAY
 	
-	MULT_ARRAY_ENABLE   <= STEP2_ENABLE or STEP3_ENABLE;
+	MULT_ARRAY_ENABLE   <=  STEP2_ENABLE  or STEP3_ENABLE ;
 	MULT_ARRAY_IN1 		<= STEP2_INPUT when (state = Step2) else STEP3_INPUT;
 	MULT_ARRAY_IN2 		<= STEP1_DOTPROD when (state = Step2) else TEMP_COLUMN_OUT;
 	
@@ -672,6 +682,7 @@ begin
 	STEP3_DATA_VALID    <= MULT_ARRAY_VALID when (state = Step3) else '0';
 	
 	
+--INPUT TO CORRELATION MATRIX, IN STATES IDLE AND WRITE VECTOR IT IS INITIALIZED; OTHERWISE UPDATED	
 	process (COLUMN_OUT,STEP3_PROD,state) 
 	begin
 	
@@ -683,16 +694,16 @@ begin
 			
 				for i in 0 to NUM_BANDS-1 loop
 				
-					COLUMN_IN(i) <= vectornumb;
+					COLUMN_IN(i) <= INPUT_COLUMN((CORRELATION_DATA_WIDTH) * (i + 1) - 1 downto (CORRELATION_DATA_WIDTH) * i);
 				
 				end loop;
 			
 			--for initialization
-			when WriteVector => 
+			when InitializeMatrix => 
 				
 				for i in 0 to NUM_BANDS-1 loop
 				
-					COLUMN_IN(i) <= vectornumb;
+					COLUMN_IN(i) <= INPUT_COLUMN((CORRELATION_DATA_WIDTH) * (i + 1) - 1 downto (CORRELATION_DATA_WIDTH) * i);
 				
 				end loop;
 				
@@ -706,10 +717,11 @@ begin
 				end loop;
 			
 		end case;
-	
-	
+
 	end process;
-	
+
+
+--STATE MACHINE TO CONTROL UPDATING OF CORRELATION MATRIX	
 	states: process (CLK, RESETN)
 	variable counter: integer range 0 to NUM_BANDS + 3;
 	variable pix_counter: integer range 0 to NUM_BANDS;
@@ -732,16 +744,40 @@ begin
 				case state is
 				
 					when Idle =>
+							
+						if( INPUT_COLUMN_VALID = '1') then 
+						
+							--counter := counter + 1;
+							state <= InitializeMatrix;
+							
+						end if;
+						
+								
+					when InitializeMatrix => 
+						
+						if (counter = NUM_BANDS - 1) then 
+						
+							counter := 0;
+							state <= WaitForStart;	
+				
+						elsif( INPUT_COLUMN_VALID = '1') then 
+							
+							counter := counter + 1;
+							
+						end if;
+						
+						COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length)); 
+
+					when WaitForStart => 
 					
 						if((S_AXIS_TREADY_temp and S_AXIS_TVALID) = '1') then
 							
 							state <= WriteVector;
 							counter := counter + 1;
-							COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-							COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length)); --for initialization
 							
-						end if;	
+						end if;
 					
+						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
 					
 					when WriteVector =>
 					
@@ -757,7 +793,6 @@ begin
 						end if;
 						
 						COMPONENT_NUMBER <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length));
-						COLUMN_NUMBER    <= std_logic_vector(to_unsigned(counter,COMPONENT_NUMBER'length)); --for initialization
 						
 					when Step1Fetch =>
 
@@ -898,104 +933,128 @@ begin
 
 	end process states; 
 	
-	
-	comb_proc: process(state,STEP3_DATA_VALID,ENABLE_INPUT,ENABLE_STEP3)
-    begin
-        case state is
-           
 
-		    when Idle =>
-			
-				S_AXIS_TREADY_temp <= '1';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
-			
-			when WriteVector => 
-			
-				S_AXIS_TREADY_temp <= '1';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
-			
-			when Step1Fetch =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
-			
-			when Step1 =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '1';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+--COMBINATORIAL PROCESS OF THE STATE MACHINE	
+	comb_proc: process(state,STEP3_DATA_VALID,ENABLE_INPUT, ENABLE_STEP3, ENABLE_CORE)
+    begin
+        
+			case state is
+			  
+				when Idle =>
 				
-			when Step1Wait =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
-			
-			when Step2Fetch =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
-			
-			when Step2 =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '1';
-				STEP3_ENABLE <= '0';				
-				
-			when Step2Wait =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';	
-				STEP3_ENABLE <= '0';
-				
-			when Step3Fetch =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';	
-				
-			when Step3 =>
-		
-				if(ENABLE_INPUT = '1') then
-					S_AXIS_TREADY_temp <= '1'; --simultaneous write
-				else 
 					S_AXIS_TREADY_temp <= '0';
-				end if;	
-				
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				
-				if(ENABLE_STEP3 = '1') then
-					STEP3_ENABLE <= '1';		
-				else 
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
 					STEP3_ENABLE <= '0';
-				end if;					
-			
 				
-			when others =>
-			
-				S_AXIS_TREADY_temp <= '0';
-				STEP1_ENABLE <= '0';
-				STEP2_ENABLE <= '0';
-				STEP3_ENABLE <= '0';
+				when InitializeMatrix =>
 				
-        end case;
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when WaitForStart =>
+				
+					if(ENABLE_CORE = '1') then 
+						S_AXIS_TREADY_temp <= '1';
+					else
+						S_AXIS_TREADY_temp <= '0';
+					end if;
+					
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when WriteVector => 
+				
+					S_AXIS_TREADY_temp <= '1';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when Step1Fetch =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when Step1 =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '1';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+					
+				when Step1Wait =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when Step2Fetch =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+				
+				when Step2 =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '1';
+					STEP3_ENABLE <= '0';				
+					
+				when Step2Wait =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';	
+					STEP3_ENABLE <= '0';
+					
+				when Step3Fetch =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';	
+					
+				when Step3 =>
+			
+					if(ENABLE_INPUT = '1') then
+						S_AXIS_TREADY_temp <= '1'; --simultaneous write
+					else 
+						S_AXIS_TREADY_temp <= '0';
+					end if;	
+					
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					
+					if(ENABLE_STEP3 = '1') then
+						STEP3_ENABLE <= '1';		
+					else 
+						STEP3_ENABLE <= '0';
+					end if;					
+				
+					
+				when others =>
+				
+					S_AXIS_TREADY_temp <= '0';
+					STEP1_ENABLE <= '0';
+					STEP2_ENABLE <= '0';
+					STEP3_ENABLE <= '0';
+					
+			end case;
+	
+		
+		
     end process comb_proc;
 	
 	
+--TEMPORARY RESULTS MATRIX COLUMN COUNTER (NEEDED SEPARATELY). ALSO STEP2 IS DELAYED FOR DOT PRODUCT MODULE 	
 	process (CLK, RESETN)
 	begin
 		if (rising_edge (CLK)) then
@@ -1017,7 +1076,6 @@ begin
 					TEMP_COLUMN_NUMBER <= (others => '0');
 				
 				end if;
-		
 		
 			end if;
 		end if;
