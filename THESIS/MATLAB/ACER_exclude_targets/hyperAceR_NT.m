@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results] = hyperAceR_NT(M,S,gt,index)
+function [results,mapexcluded] = hyperAceR_NT(M,S,gt,index)
 % HYPERACER Performs the adaptive cosin/coherent estimator algorithm with correlation MATRIX!
 
 % Usage
@@ -19,12 +19,15 @@ function [results] = hyperAceR_NT(M,S,gt,index)
     %gt2d = hyperConvert2d(gt);
     gt2d = reshape(gt',[1,numel(gt)]);
     R = 0;
+    mapexcluded = zeros(1,N);
     
     for i = 1:N
        
        if(gt2d(i) ~= index)
          x = M(:,i);  
          R = R + x*x';
+       else
+            mapexcluded(i) = 1;
        end
         
     end

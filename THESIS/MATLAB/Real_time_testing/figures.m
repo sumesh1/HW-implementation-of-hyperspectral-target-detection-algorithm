@@ -9,8 +9,9 @@ clc; %clear; close all;
 cell_struct={results_PCA};
 %TD_algs=["Cem","Cem_NT","AceR","AceR_NT","AceR_RTA03"];
 %TD_algs = [ "Cem","Cem_NT","Cem_RTA03","AceR","AceR_NT","AceR_RTA01","AceR_RTA03","AceR_RTA05"];
-TD_algs = ["AceR","AceR_RTSM","AceR_SBSSM","AceR_RTAM01","AceR_RTAM03","AceR_RTAM05","AceR_RTAM07"];
-%TD_algs = ["Ace", "AceR","AceR_SBSSM", "Cem","Cem_SBSSM"];
+TD_algs = ["Cem","Cem_NT","Cem_SBSSM","Cem_RTAM01","Cem_RTAM03","Cem_RTAM05","Cem_RTAM07","AceR","AceR_NT","AceR_RTSM","AceR_SBSSM","AceR_RTAM01","AceR_RTAM03","AceR_RTAM05","AceR_RTAM07"];
+%TD_algs = ["AceR", "AceR_RT","AceR_RTA01", "AceR_RTA03","AceR_RTA05"];
+%TD_algs = [ "Cem","Cem_NT","Cem_SBSSM","Cem_RTAM01","Cem_RTAM03","Cem_RTAM05","Cem_RTAM07"];
 
 scenes_cell = fieldnames(cell_struct{1});
 scenes = string(zeros(1,length(scenes_cell)));
@@ -129,6 +130,40 @@ end
 %   %   saveas(gcf,sprintf("%s_VIS_SUMM.png", replace(scenes(s), ' ', '_')));
 %  end 
 %  
+
+
+
+ %% plot - ROC
+ for s = 1:length(scenes)
+   
+     consitituents_matrix = string(fieldnames(cell_struct{1}.(scenes(s))))';
+     consitituents_matrix = consitituents_matrix;
+     
+    
+     for e = 1:length(consitituents_matrix)
+        figure;
+        hold on; 
+         for td = 1:length(TD_algs) 
+              TD_alg = TD_algs(td);   
+                   
+              tpr =   cell_struct{1}.(scenes(s)).(consitituents_matrix(e)).(TD_alg).tpr;
+              fpr =   cell_struct{1}.(scenes(s)).(consitituents_matrix(e)).(TD_alg).fpr;   
+              semilogx(fpr,tpr,'--');
+         end
+         ylabel('TPR');
+         set(gca, 'XScale', 'log');
+         l = legend([upper(TD_algs)]);
+         l.ItemHitFcn = @hitcallback_ex2;
+         %legend('Location','best');
+
+         hold off;
+
+         title(sprintf('%s - %s',scenes(s),consitituents_matrix(e)), 'Interpreter', 'none');
+         grid on;
+     end
+     
+
+ end  
  
  %% plot - ALL
  for s = 1:length(scenes)
@@ -160,9 +195,9 @@ end
      set(gca,'xticklabel',TD_algs.');
      ylabel('Value');
      
-     legend([upper(["AUC","MCC","VIS"])],'Interpreter', 'none');
+     l = legend([upper(["AUC","MCC","VIS"])],'Interpreter', 'none');
      legend('Location','best');
-
+ l.ItemHitFcn = @hitcallback_ex2;
      hold off;
      
      title(sprintf('%s - All endmembers',scenes(s)), 'Interpreter', 'none');
@@ -173,3 +208,12 @@ end
   %   saveas(gcf,sprintf("%s_VIS_SUMM.png", replace(scenes(s), ' ', '_')));
  end  
  
+function hitcallback_ex2(src,evnt)
+
+if evnt.Peer.LineWidth == 3
+    evnt.Peer.LineWidth = 0.5;
+else 
+    evnt.Peer.LineWidth = 3;
+end
+
+end

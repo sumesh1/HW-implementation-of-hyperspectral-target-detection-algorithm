@@ -6,7 +6,7 @@ results_PCA = struct;
 fast_run = 1;
 if fast_run
     td_algs = td_algs;
-    scenes  = scenes;
+    scenes  = scenes(3);
     %Qs = Qs(1:3);
     Qs = [20];
 end

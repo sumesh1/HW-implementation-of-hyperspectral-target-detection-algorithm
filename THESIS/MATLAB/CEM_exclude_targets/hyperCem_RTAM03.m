@@ -1,8 +1,7 @@
 % created by: Dordije Boskovic
 
-function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
-
-    th = 0.1;
+function [results,mapexcluded] = hyperCem_RTAM03(M, S)
+    th = 0.3;
 
 	[p, N] = size(M);
     t = round(N/100);
@@ -22,11 +21,9 @@ function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
         %calculate detection statistic
         tmp2 = S.'*G;
         tmp = (tmp2*S);
-        results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
+        results(k) = (tmp2*x) / (tmp);
 
-        
-        %added to calculate mean and exclude estimated targets from mean
-        if(k > t) 
+         if(k > t) 
             res_mean = 0;
             count = 0;
             for p = (k-t) : (k-1)
@@ -39,7 +36,7 @@ function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
         end
 
 
-        if(results(k) - res_mean >= th)
+        if(results(k) - res_mean >= th*res_mean)
             mapexcluded (k) = 1;
            
             if(k < t)
@@ -52,22 +49,21 @@ function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
         
     end
     
-    for k = 1:t
+      for k = 1:t
 
         x = M(:,k);
 
         %calculate detection statistic
         tmp2 = S.'*G;
         tmp = (tmp2*S);
-        results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
+        results(k) = (tmp2*x) / (tmp);
 
         %update matrix
         %G = G - ((G*x)*(x'*G))./(1+x'*G*x);
 
-    end
+      end
 
 end
-
 
 
 

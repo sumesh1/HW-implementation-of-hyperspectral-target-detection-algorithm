@@ -42,7 +42,7 @@ function [results,mapexcluded] = hyperAceR_RTAM03(M, S)
         if(results(k) - res_mean >= th)
             mapexcluded (k) = 1;
            
-            if(k < t && k ~= 1)
+            if(k < t)
                   G = G - ((G*x)*(x'*G))./(1+x'*G*x); 
             end 
 

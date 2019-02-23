@@ -1,4 +1,4 @@
-function [res_img] = tdRun(M, end_sign, td_alg, param_1, param_2)
+function [res_img,res_2d] = tdRun(M, end_sign, td_alg, param_1, param_2)
 
 % M,         A 3 dimensional datacube
 % gt,        a spatial 2d representation of the different classes in the image
@@ -24,8 +24,9 @@ switch nargin
 end
 
 [h,w,d] = size(M);
-from_3d_to_2d = @(M) reshape(M, w*h, d).';
-from_2d_to_3d = @(M,h,w,d) reshape(M.', h, w, d);
+%from_3d_to_2d = @(M) reshape(M, w*h, d).';
+from_3d_to_2d = @(M) reshape(permute(M,[2 1 3]), w*h, d).';
+from_2d_to_3d = @(M,h,w,d) reshape(M, h, w, d);
 
 end_sign = end_sign';
 
@@ -34,9 +35,9 @@ M2d = from_3d_to_2d(M);
 if param_1 == -1
     res_2d = feval(td_alg, M2d, end_sign);
 else
-    res_2d = feval(td_alg, M2d,end_sign, param_1, param_2);
+    res_2d = feval(td_alg, M2d, end_sign, param_1, param_2);
 end
 
-res_img = from_2d_to_3d(res_2d,h,w,1);
-
+res_img = from_2d_to_3d(res_2d,w,h,1);
+res_img = res_img';
 end
