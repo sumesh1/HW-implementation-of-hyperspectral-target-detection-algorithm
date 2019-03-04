@@ -8,7 +8,7 @@
 % gt = ground truth matrix
 % value = chosen ground truth component
 
-function [mcc,vis,tpr,fpr] = getMCC (ds_vector, th, gt, value)
+function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, th, gt, value)
 
 	[m,n]=size(gt);
 	
