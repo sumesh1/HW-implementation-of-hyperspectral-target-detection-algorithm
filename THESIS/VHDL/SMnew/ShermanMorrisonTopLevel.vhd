@@ -23,6 +23,7 @@ use IEEE.math_real.all;
 use ieee.numeric_std.all;
 library work;
 use work.td_package.all;
+
 entity ShermanMorrisonTopLevel is
 	generic (
 		NUM_BANDS              : positive := 16;
@@ -68,7 +69,15 @@ entity ShermanMorrisonTopLevel is
 		S_AXI_ARREADY      : out std_logic;
 		S_AXI_RDATA        : out std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
 		S_AXI_RRESP        : out std_logic_vector(1 downto 0);
-		S_AXI_RVALID       : out std_logic
+		S_AXI_RVALID       : out std_logic;
+		
+		
+		--M AXIS
+		M_AXIS_TVALID : out std_logic;
+		M_AXIS_TDATA  : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		M_AXIS_TLAST  : out std_logic;
+		M_AXIS_TREADY : in std_logic
+		
 	);
 end ShermanMorrisonTopLevel;
 
@@ -85,6 +94,14 @@ architecture Behavioral of ShermanMorrisonTopLevel is
 	signal ENABLE_CORE		  : std_logic;
 	signal S_AXI_IN			  : S_AXI_FROM_MASTER;
 	signal S_AXI_OUT		  : S_AXI_TO_MASTER;
+	
+	--master output signals
+	signal STOP_PIPELINE : std_logic;
+	signal LAST_PIXEL	 : std_logic;
+	
+	--temp
+	signal M_DIV_AXIS_TDATA_temp  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal M_DIV_AXIS_TVALID_temp : std_logic;
 	
 begin
 
@@ -105,7 +122,7 @@ begin
 			CONTROLLER_SIGS    => CONTROLLER_SIGS,
 			INPUT_COLUMN_VALID => INIT_COLUMN_VALID,
 			S_DIV_AXIS_TVALID  => S_DIV_AXIS_TVALID,
-			M_DIV_AXIS_TVALID  => M_DIV_AXIS_TVALID,
+			M_DIV_AXIS_TVALID  => M_DIV_AXIS_TVALID_temp,
 			ENABLE_CORE        => ENABLE_CORE
 		);
 
@@ -124,8 +141,9 @@ begin
 			S_AXIS_TDATA      => S_AXIS_TDATA,
 			S_DIV_AXIS_TDATA  => S_DIV_AXIS_TDATA,
 			S_DIV_AXIS_TVALID => S_DIV_AXIS_TVALID,
-			M_DIV_AXIS_TDATA  => M_DIV_AXIS_TDATA,
-			INPUT_COLUMN      => INIT_COLUMN
+			M_DIV_AXIS_TDATA  => M_DIV_AXIS_TDATA_temp,
+			INPUT_COLUMN      => INIT_COLUMN,
+			SIGNATURE_VECTOR  => SIGNATURE_VECTOR
 		);
 		
 	AxiControlInst : entity work.AXI_CONTROL(arch_imp)
@@ -148,10 +166,33 @@ begin
 			SIGNATURE_VECTOR       => SIGNATURE_VECTOR,
 			ENABLE_CORE			   => ENABLE_CORE
 		);
+		
+		
+	MasterAxisInst: entity work.MasterOutput(Behavioral) 
+		generic map (
+		DATA_WIDTH  => CORRELATION_DATA_WIDTH ,
+		PACKET_SIZE => 8
+		)
+		port map (
+		CLK           	=> CLK,
+		RESETN        	=> RESETN,
+		DATA_IN       	=> M_DIV_AXIS_TDATA_temp,
+		DATA_IN_VALID 	=> M_DIV_AXIS_TVALID_temp,
+		M_AXIS_TVALID 	=> M_AXIS_TVALID, 
+		M_AXIS_TDATA  	=> M_AXIS_TDATA,  
+		M_AXIS_TLAST  	=> M_AXIS_TLAST,  
+		M_AXIS_TREADY 	=> M_AXIS_TREADY, 
+		STOP_PIPELINE 	=> STOP_PIPELINE,
+		LAST_PIXEL	  	=> '0'
+		);
+
 
 ---------------------------------------------------------------------------------	 
 -- PACKING
 ---------------------------------------------------------------------------------	
+
+	M_DIV_AXIS_TDATA   <=  M_DIV_AXIS_TDATA_temp ;
+    M_DIV_AXIS_TVALID  <=  M_DIV_AXIS_TVALID_temp;
 
 	S_AXI_IN <=
 		(

@@ -53,10 +53,14 @@ package td_package is
 		TEMP_WRITE_ENABLE      : std_logic;
 
 		MULT_ARRAY_ENABLE      : std_logic;
+		DP_ARRAY_ENABLE		   : std_logic;
 
 		COLUMN_IN_SEL          : std_logic;
 		MULT_ARRAY_SEL         : std_logic;
+		DP_ARRAY_SEL		   : std_logic;
 		COUNT_ST2              : std_logic;
+		
+		
 
 		COMPONENT_NUMBER       : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
 		COLUMN_NUMBER          : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);

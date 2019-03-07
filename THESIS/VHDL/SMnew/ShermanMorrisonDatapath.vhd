@@ -43,7 +43,8 @@ entity ShermanMorrisonDatapath is
 
 		M_DIV_AXIS_TDATA  : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 
-		INPUT_COLUMN      : in std_logic_vector(NUM_BANDS * CORRELATION_DATA_WIDTH - 1 downto 0)
+		INPUT_COLUMN      : in std_logic_vector(NUM_BANDS * CORRELATION_DATA_WIDTH - 1 downto 0);
+		SIGNATURE_VECTOR  : in std_logic_vector(NUM_BANDS * PIXEL_DATA_WIDTH - 1 downto 0)
 	);
 end ShermanMorrisonDatapath;
 
@@ -101,11 +102,14 @@ architecture BRAM of ShermanMorrisonDatapath is
 
 	signal COLUMN_IN_SEL          : std_logic;
 	signal MULT_ARRAY_SEL         : std_logic;
+	signal DP_ARRAY_SEL 		  : std_logic;
 
 	constant ACCUMULATOR_WIDTH    : positive := (integer(ceil(log2(real(NUM_BANDS)))) + PIXEL_DATA_WIDTH + CORRELATION_DATA_WIDTH - 1);
 	signal STEP2_DIV_IN           : std_logic_vector(ACCUMULATOR_WIDTH - 1 downto 0);
 
 	signal COUNT_ST2              : std_logic;
+	
+	signal SIG_COMPONENT 		  : std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 
 	constant vectornumb           : std_logic_vector (CORRELATION_DATA_WIDTH - 1 downto 0) := std_logic_vector(to_unsigned(214748, CORRELATION_DATA_WIDTH));
 begin
@@ -251,6 +255,8 @@ begin
 	COLUMN_IN_SEL          <= CONTROLLER_SIGS.COLUMN_IN_SEL;
 	MULT_ARRAY_SEL         <= CONTROLLER_SIGS.MULT_ARRAY_SEL;
 	COUNT_ST2              <= CONTROLLER_SIGS.COUNT_ST2;
+	DP_ARRAY_SEL           <= CONTROLLER_SIGS.DP_ARRAY_SEL;
+	DP_ARRAY_ENABLE        <= CONTROLLER_SIGS.DP_ARRAY_ENABLE;
 	COMPONENT_NUMBER       <= CONTROLLER_SIGS.COMPONENT_NUMBER;
 	COLUMN_NUMBER          <= CONTROLLER_SIGS.COLUMN_NUMBER;
 	
@@ -259,8 +265,7 @@ begin
 ---------------------------------------------------------------------------------		
 	
 	--DOT PRODUCT ARRAY INPUT SIGNALS
-	DP_ARRAY_ENABLE        <= STEP1_ENABLE;
-	DP_ARRAY_IN1           <= COMPONENT_OUT;
+	DP_ARRAY_IN1           <= COMPONENT_OUT when (DP_ARRAY_SEL = '1') else SIG_COMPONENT;
 	DP_ARRAY_IN2           <= COLUMN_OUT;
 	
 	STEP1_DOTPROD          <= DP_ARRAY_OUT;
@@ -306,6 +311,15 @@ begin
 		end case;
 
 	end process;
+	
+	--signature -choose component using COLUMN_NUMBER accordingly as it iterates (step2 for ACE/CEM)
+	process (SIGNATURE_VECTOR, COLUMN_NUMBER)
+	begin
+								
+		SIG_COMPONENT    <= SIGNATURE_VECTOR ( ((1 + to_integer(unsigned(COLUMN_NUMBER))*(PIXEL_DATA_WIDTH)) - 1) downto  to_integer(unsigned(COLUMN_NUMBER))*(PIXEL_DATA_WIDTH)  );
+	
+	end process;
+	
 
 	MULT_ARRAY_IN1   <= STEP2_INPUT when (MULT_ARRAY_SEL = '1') else STEP3_INPUT;
 	MULT_ARRAY_IN2   <= STEP1_DOTPROD when (MULT_ARRAY_SEL = '1') else TEMP_COLUMN_OUT;
@@ -318,6 +332,8 @@ begin
 	COMPONENT_IN     <= S_AXIS_TDATA;
 
 	M_DIV_AXIS_TDATA <= STEP2_DIV_IN (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
+	
+	
 	
 	
 	--STEP2/3_INPUT ASSIGNMENT

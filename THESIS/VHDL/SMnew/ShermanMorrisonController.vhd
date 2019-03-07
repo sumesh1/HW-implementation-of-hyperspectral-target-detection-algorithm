@@ -63,6 +63,7 @@ architecture Behavioral of ShermanMorrisonController is
 	signal TEMP_WRITE_ENABLE      : std_logic;
 
 	signal MULT_ARRAY_ENABLE      : std_logic;
+	signal DP_ARRAY_ENABLE 		  : std_logic;
 
 	signal STEP2_ENABLE_dly       : std_logic;
 	signal STEP2_ENABLE_DIV       : std_logic;
@@ -77,6 +78,9 @@ architecture Behavioral of ShermanMorrisonController is
 	signal COLUMN_IN_SEL          : std_logic;
 	signal MULT_ARRAY_SEL         : std_logic;
 	signal COUNT_ST2              : std_logic;
+	
+	--DP array selector
+	signal DP_ARRAY_SEL			  : std_logic;
 
 	--ADDRESSES FOR BRAM MODULES
 	signal COMPONENT_NUMBER       : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
@@ -98,9 +102,11 @@ begin
 		COLUMN_WRITE_ENABLE    => COLUMN_WRITE_ENABLE,
 		TEMP_WRITE_ENABLE      => TEMP_WRITE_ENABLE,
 		MULT_ARRAY_ENABLE      => MULT_ARRAY_ENABLE,
+		DP_ARRAY_ENABLE        => DP_ARRAY_ENABLE,
 		COLUMN_IN_SEL          => COLUMN_IN_SEL,
 		MULT_ARRAY_SEL         => MULT_ARRAY_SEL,
 		COUNT_ST2              => COUNT_ST2,
+		DP_ARRAY_SEL		   => DP_ARRAY_SEL,
 		COMPONENT_NUMBER       => COMPONENT_NUMBER,
 		COLUMN_NUMBER          => COLUMN_NUMBER
 		);
@@ -121,6 +127,10 @@ begin
 	COLUMN_WRITE_ENABLE    <= '1' when ((STEP3_DATA_VALID = '1') or (INPUT_COLUMN_VALID = '1' and ((state = Idle) or (state = InitializeMatrix)))) else '0';
 
 	STEP2_ENABLE_DIV       <= STEP2_ENABLE or STEP2_ENABLE_dly;
+
+	--SHARED DP ARRAY
+	DP_ARRAY_ENABLE		   <= STEP1_ENABLE or STEP2_ENABLE; --check step2enable for CEM/ACE
+	DP_ARRAY_SEL  		   <= '1' when (state = step1) else '0';
 
 	--SHARED MULT ARRAY
 	MULT_ARRAY_ENABLE      <= STEP2_ENABLE or STEP3_ENABLE;
