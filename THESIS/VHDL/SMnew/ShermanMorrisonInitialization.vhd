@@ -35,7 +35,7 @@ entity AXI_CONTROL is
 		CORRELATION_DATA_WIDTH : positive := 32;
 		PIXEL_DATA_WIDTH       : positive := 16;
 		NUM_BANDS              : integer  := 16;
-		ADDR_WIDTH             : integer  := integer(ceil(log2(real(NUM_BANDS))))
+		ADDR_WIDTH             : integer  := 4		--integer(ceil(log2(real(NUM_BANDS))))
 	);
 	port (
 	
@@ -523,7 +523,7 @@ begin
 				--SIGNATURE handling - keyhole writing to slv_reg2
 				if (slv_reg_wren_dly = '1' and sig_count < NUM_BANDS and axi_awaddr_dly = b"10") then
 
-					SIGNATURE_VECTOR ((PIXEL_DATA_WIDTH) * (sig_count + 1) - 1 downto (PIXEL_DATA_WIDTH) * sig_count) <= slv_reg2;
+					SIGNATURE_VECTOR ((PIXEL_DATA_WIDTH) * (sig_count + 1) - 1 downto (PIXEL_DATA_WIDTH) * sig_count) <= slv_reg2(PIXEL_DATA_WIDTH-1 downto 0);
 
 					sig_count := sig_count + 1;
 

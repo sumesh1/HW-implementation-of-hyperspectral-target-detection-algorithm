@@ -185,13 +185,14 @@ begin
 
 						if (INPUT_COLUMN_VALID = '1') then
 
-							--counter := counter + 1;
+							counter := counter + 1;
 							state <= InitializeMatrix;
 
 						end if;
+						
 					when InitializeMatrix =>
 
-						if (counter = NUM_BANDS - 1) then
+						if (counter = NUM_BANDS) then
 
 							counter := 0;
 							state <= WaitForStart;

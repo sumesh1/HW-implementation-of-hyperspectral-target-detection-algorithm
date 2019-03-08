@@ -279,7 +279,7 @@ begin
 ---------------------------------------------------------------------------------		
 
 	--1. INPUT TO CORRELATION MATRIX, IN STATES IDLE AND WRITE VECTOR IT IS INITIALIZED; OTHERWISE UPDATED	
-	process (COLUMN_OUT, STEP3_PROD, COLUMN_IN_SEL)
+	process (COLUMN_OUT, STEP3_PROD, COLUMN_IN_SEL,INPUT_COLUMN)
 	begin
 
 		case COLUMN_IN_SEL is
@@ -316,7 +316,7 @@ begin
 	process (SIGNATURE_VECTOR, COLUMN_NUMBER)
 	begin
 								
-		SIG_COMPONENT    <= SIGNATURE_VECTOR ( ((1 + to_integer(unsigned(COLUMN_NUMBER))*(PIXEL_DATA_WIDTH)) - 1) downto  to_integer(unsigned(COLUMN_NUMBER))*(PIXEL_DATA_WIDTH)  );
+		SIG_COMPONENT    <= SIGNATURE_VECTOR ( (((1 + to_integer(unsigned(COLUMN_NUMBER)))*(PIXEL_DATA_WIDTH)) - 1) downto  to_integer(unsigned(COLUMN_NUMBER))*(PIXEL_DATA_WIDTH)  );
 	
 	end process;
 	
