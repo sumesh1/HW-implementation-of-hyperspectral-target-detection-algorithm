@@ -68,6 +68,9 @@ architecture Behavioral of ShermanMorrisonController is
 	signal STEP2_ENABLE_dly       : std_logic;
 	signal STEP2_ENABLE_DIV       : std_logic;
 	signal STEP2_DIV_IN_VALID     : std_logic;
+	
+	signal STEP3_ENABLE_dly       : std_logic;
+	signal STEP3_ENABLE_TD        : std_logic;
 
 	signal STEP1_DATA_VALID       : std_logic;
 	signal STEP2_DATA_VALID       : std_logic;
@@ -77,7 +80,10 @@ architecture Behavioral of ShermanMorrisonController is
 	--CORRELATION MATRIX selector
 	signal COLUMN_IN_SEL          : std_logic;
 	signal MULT_ARRAY_SEL         : std_logic;
+	signal DIV_SEL				  : std_logic;
 	signal COUNT_ST2              : std_logic;
+	signal COUNT_RS				  : std_logic;
+	signal DP_ARRAY_SAVE          : std_logic;
 	
 	--DP array selector
 	signal DP_ARRAY_SEL			  : std_logic;
@@ -98,6 +104,7 @@ begin
 		STEP2_ENABLE           => STEP2_ENABLE,
 		STEP2_ENABLE_DIV       => STEP2_ENABLE_DIV,
 		STEP3_ENABLE           => STEP3_ENABLE,
+		STEP3_ENABLE_TD		   => STEP3_ENABLE_TD,
 		COMPONENT_WRITE_ENABLE => COMPONENT_WRITE_ENABLE,
 		COLUMN_WRITE_ENABLE    => COLUMN_WRITE_ENABLE,
 		TEMP_WRITE_ENABLE      => TEMP_WRITE_ENABLE,
@@ -105,13 +112,16 @@ begin
 		DP_ARRAY_ENABLE        => DP_ARRAY_ENABLE,
 		COLUMN_IN_SEL          => COLUMN_IN_SEL,
 		MULT_ARRAY_SEL         => MULT_ARRAY_SEL,
+		DIV_SEL				   => DIV_SEL,
 		COUNT_ST2              => COUNT_ST2,
+		COUNT_RS		       => COUNT_RS,
+		DP_ARRAY_SAVE		   => DP_ARRAY_SAVE,
 		DP_ARRAY_SEL		   => DP_ARRAY_SEL,
 		COMPONENT_NUMBER       => COMPONENT_NUMBER,
 		COLUMN_NUMBER          => COLUMN_NUMBER
 		);
 		
-	STEP1_DATA_VALID       <= VALID_SIGS.STEP1_DATA_VALID;
+	--STEP1_DATA_VALID       <= VALID_SIGS.STEP1_DATA_VALID;
 	--STEP2_DATA_VALID          <=	VALID_SIGS.STEP2_DATA_VALID;
 	--STEP3_DATA_VALID          <= 	VALID_SIGS.STEP3_DATA_VALID;
 	MULT_ARRAY_VALID       <= VALID_SIGS.MULT_ARRAY_VALID;
@@ -127,9 +137,10 @@ begin
 	COLUMN_WRITE_ENABLE    <= '1' when ((STEP3_DATA_VALID = '1') or (INPUT_COLUMN_VALID = '1' and ((state = Idle) or (state = InitializeMatrix)))) else '0';
 
 	STEP2_ENABLE_DIV       <= STEP2_ENABLE or STEP2_ENABLE_dly;
+	STEP3_ENABLE_TD		   <= STEP3_ENABLE or STEP3_ENABLE_dly;
 
 	--SHARED DP ARRAY
-	DP_ARRAY_ENABLE		   <= STEP1_ENABLE or STEP2_ENABLE; --check step2enable for CEM/ACE
+	DP_ARRAY_ENABLE		   <= STEP1_ENABLE or (STEP2_ENABLE or STEP2_ENABLE_dly); --check step2enable for CEM/ACE
 	DP_ARRAY_SEL  		   <= '1' when (state = step1) else '0';
 
 	--SHARED MULT ARRAY
@@ -139,10 +150,13 @@ begin
 	STEP3_DATA_VALID       <= MULT_ARRAY_VALID when (state = Step3) else '0';
 
 	M_DIV_AXIS_TVALID      <= STEP2_DIV_IN_VALID;
+	DIV_SEL				   <= '0' when (STEP2_DIV_IN_VALID = '1') else '1';
 
 	COLUMN_IN_SEL          <= '0' when (state = Idle or state = InitializeMatrix) else '1';
 	MULT_ARRAY_SEL         <= '1' when (state = Step2) else '0';
 	COUNT_ST2              <= '1' when (state = Step2Fetch or state = Step2) else '0';
+	DP_ARRAY_SAVE	       <= '1' when (state = Step2Fetch) else '0';
+	COUNT_RS			   <= '1' when (STEP3_ENABLE = '1' or state = Step3Fetch) else '0';
 	
 	--DELAY FOR STEP 2 DP For division
 	process (CLK, RESETN)
@@ -151,10 +165,12 @@ begin
 			if (RESETN = '0') then
 
 				STEP2_ENABLE_dly <= '0';
+				STEP3_ENABLE_dly <= '0';
 
 			else
 
 				STEP2_ENABLE_dly <= STEP2_ENABLE;
+				STEP3_ENABLE_dly <= STEP3_ENABLE;
 
 			end if;
 		end if;

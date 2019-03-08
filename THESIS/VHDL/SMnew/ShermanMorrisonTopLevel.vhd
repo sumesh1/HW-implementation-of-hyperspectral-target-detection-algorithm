@@ -83,7 +83,7 @@ end ShermanMorrisonTopLevel;
 
 
 architecture Behavioral of ShermanMorrisonTopLevel is
-
+ 
 	signal CONTROLLER_SIGS    : Controller_Signals;
 	signal VALID_SIGS      	  : Valid_signals;
 	
@@ -102,6 +102,10 @@ architecture Behavioral of ShermanMorrisonTopLevel is
 	--temp
 	signal M_DIV_AXIS_TDATA_temp  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 	signal M_DIV_AXIS_TVALID_temp : std_logic;
+	
+	--output
+	signal OUTPUT_STREAM  		: std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal OUTPUT_STREAM_VALID  : std_logic;
 	
 begin
 
@@ -176,8 +180,8 @@ begin
 		port map (
 		CLK           	=> CLK,
 		RESETN        	=> RESETN,
-		DATA_IN       	=> M_DIV_AXIS_TDATA_temp,
-		DATA_IN_VALID 	=> M_DIV_AXIS_TVALID_temp,
+		DATA_IN       	=> OUTPUT_STREAM,
+		DATA_IN_VALID 	=> OUTPUT_STREAM_VALID,
 		M_AXIS_TVALID 	=> M_AXIS_TVALID, 
 		M_AXIS_TDATA  	=> M_AXIS_TDATA,  
 		M_AXIS_TLAST  	=> M_AXIS_TLAST,  
@@ -191,8 +195,15 @@ begin
 -- PACKING
 ---------------------------------------------------------------------------------	
 
+	--send to divider
 	M_DIV_AXIS_TDATA   <=  M_DIV_AXIS_TDATA_temp ;
     M_DIV_AXIS_TVALID  <=  M_DIV_AXIS_TVALID_temp;
+	
+	
+	--send to DMA
+	OUTPUT_STREAM 	   	<= M_DIV_AXIS_TDATA_temp;
+	OUTPUT_STREAM_VALID	<= M_DIV_AXIS_TVALID_temp;
+	
 
 	S_AXI_IN <=
 		(

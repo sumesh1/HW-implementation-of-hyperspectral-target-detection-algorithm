@@ -47,6 +47,7 @@ package td_package is
 		STEP2_ENABLE           : std_logic;
 		STEP2_ENABLE_DIV       : std_logic;
 		STEP3_ENABLE           : std_logic;
+		STEP3_ENABLE_TD        : std_logic;
 
 		COMPONENT_WRITE_ENABLE : std_logic;
 		COLUMN_WRITE_ENABLE    : std_logic;
@@ -58,8 +59,11 @@ package td_package is
 		COLUMN_IN_SEL          : std_logic;
 		MULT_ARRAY_SEL         : std_logic;
 		DP_ARRAY_SEL		   : std_logic;
-		COUNT_ST2              : std_logic;
+		DIV_SEL				   : std_logic; 
 		
+		COUNT_ST2              : std_logic;
+		COUNT_RS			   : std_logic;
+		DP_ARRAY_SAVE		   : std_logic;
 		
 
 		COMPONENT_NUMBER       : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
@@ -68,7 +72,7 @@ package td_package is
 	end record;
 
 	type Valid_signals is record
-		STEP1_DATA_VALID   : std_logic;
+		--STEP1_DATA_VALID   : std_logic;
 		--STEP2_DATA_VALID  : std_logic;
 		--STEP3_DATA_VALID  : std_logic;
 		MULT_ARRAY_VALID   : std_logic;

@@ -1,4 +1,4 @@
-----------------------------------------------------------------------------------
+   ----------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: 
 -- 
@@ -71,6 +71,8 @@ architecture BRAM of ShermanMorrisonDatapath is
 	signal DP_ARRAY_OUT			  : CorrMatrixColumn;
 	signal DP_ARRAY_VALID		  : std_logic;
 	
+	signal DP_ARRAY_OUT_SAVED	  : CorrMatrixColumn;
+	
 	--step1 SM signals
 	signal STEP1_ENABLE           : std_logic;
 	signal STEP1_DOTPROD          : CorrMatrixColumn;
@@ -99,6 +101,14 @@ architecture BRAM of ShermanMorrisonDatapath is
 	signal STEP2_DIV_IN_VALID     : std_logic;
 	signal DIV_CLEAR              : std_logic;
 	signal STEP2_ENABLE_DIV       : std_logic;
+	signal STEP3_ENABLE_TD        : std_logic;
+	signal DIV_SEL				  : std_logic;
+	
+	
+	signal TDS_CLEAR			  : std_logic;
+	signal TDS_VALID			  : std_logic;
+	signal TDX_CLEAR			  : std_logic;
+	signal TDX_VALID			  : std_logic;
 
 	signal COLUMN_IN_SEL          : std_logic;
 	signal MULT_ARRAY_SEL         : std_logic;
@@ -106,8 +116,18 @@ architecture BRAM of ShermanMorrisonDatapath is
 
 	constant ACCUMULATOR_WIDTH    : positive := (integer(ceil(log2(real(NUM_BANDS)))) + PIXEL_DATA_WIDTH + CORRELATION_DATA_WIDTH - 1);
 	signal STEP2_DIV_IN           : std_logic_vector(ACCUMULATOR_WIDTH - 1 downto 0);
+	signal SRX_OUT				  : std_logic_vector(ACCUMULATOR_WIDTH - 1 downto 0);
+	signal SRS_OUT				  : std_logic_vector(ACCUMULATOR_WIDTH - 1 downto 0);
+	
+	signal RS_INPUT 			  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal RX_INPUT 			  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+
+	signal CEM_DIV1               : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal CEM_DIV2				  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 
 	signal COUNT_ST2              : std_logic;
+	signal COUNT_RS				  : std_logic;
+	signal DP_ARRAY_SAVE		  : std_logic;
 	
 	signal SIG_COMPONENT 		  : std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 
@@ -200,7 +220,8 @@ begin
 			COLUMN_IN     => TEMP_COLUMN_IN,
 			COLUMN_OUT    => TEMP_COLUMN_OUT
 		);
-	
+		
+------------------------------------------------------------------------------	
 --dot product unit ADDED FOR DIVIDER
 	dp_datapath_sm_inst_st2 : entity work.dp_datapath_sm(Behavioral)
 		generic map(
@@ -230,6 +251,69 @@ begin
 			p_rdy   => STEP2_DIV_IN_VALID,
 			clear   => DIV_CLEAR
 		);
+		
+----------------------------------------------------------------------------		
+--dot product unit sRs
+	dp_datapath_sm_inst_sRs : entity work.dp_datapath_sm(Behavioral)
+		generic map(
+			bit_depth_1 => PIXEL_DATA_WIDTH,
+			bit_depth_2 => CORRELATION_DATA_WIDTH,
+			p_bit_width => ACCUMULATOR_WIDTH
+		)
+		port map(
+			clk     => CLK,
+			en      => STEP3_ENABLE_TD,
+			clear   => TDS_CLEAR,
+			reset_n => RESETN,
+			in_1    => SIG_COMPONENT,
+			in_2    => RS_INPUT,
+			p       => SRS_OUT
+		);
+
+--dot product unit controller sRs 
+	dp_controller_sm_inst_sRs : entity work.dp_controller_sm(Behavioral)
+		generic map(
+			V_LEN => NUM_BANDS
+		)
+		port map(
+			clk     => CLK,
+			en      => STEP3_ENABLE_TD,
+			reset_n => RESETN,
+			p_rdy   => TDS_VALID,
+			clear   => TDS_CLEAR
+		);	
+
+--------------------------------------------------------------------------
+--dot product unit sRx
+	dp_datapath_sm_inst_sRx : entity work.dp_datapath_sm(Behavioral)
+		generic map(
+			bit_depth_1 => PIXEL_DATA_WIDTH,
+			bit_depth_2 => CORRELATION_DATA_WIDTH,
+			p_bit_width => ACCUMULATOR_WIDTH
+		)
+		port map(
+			clk     => CLK,
+			en      => STEP2_ENABLE_DIV,
+			clear   => TDX_CLEAR,
+			reset_n => RESETN,
+			in_1    => SIG_COMPONENT,
+			in_2    => STEP2_INPUT,
+			p       => SRX_OUT
+		);
+
+--dot product unit controller sRx
+	dp_controller_sm_inst_sRx : entity work.dp_controller_sm(Behavioral)
+		generic map(
+			V_LEN => NUM_BANDS
+		)
+		port map(
+			clk     => CLK,
+			en      => STEP2_ENABLE_DIV,
+			reset_n => RESETN,
+			p_rdy   => TDX_VALID,
+			clear   => TDX_CLEAR
+		);			
+		
 	
 ---------------------------------------------------------------------------------	 
 -- PACKING
@@ -237,7 +321,7 @@ begin
 
 	VALID_SIGS <=
 		(
-		STEP1_DATA_VALID   => STEP1_DATA_VALID,
+		--STEP1_DATA_VALID   => STEP1_DATA_VALID,
 		--STEP2_DATA_VALID    =>   STEP2_DATA_VALID  ,
 		--STEP3_DATA_VALID    =>   STEP3_DATA_VALID  ,
 		MULT_ARRAY_VALID   => MULT_ARRAY_VALID,
@@ -248,13 +332,17 @@ begin
 	STEP2_ENABLE           <= CONTROLLER_SIGS.STEP2_ENABLE;
 	STEP2_ENABLE_DIV       <= CONTROLLER_SIGS.STEP2_ENABLE_DIV;
 	STEP3_ENABLE           <= CONTROLLER_SIGS.STEP3_ENABLE;
+	STEP3_ENABLE_TD 	   <= CONTROLLER_SIGS.STEP3_ENABLE_TD;
 	COMPONENT_WRITE_ENABLE <= CONTROLLER_SIGS.COMPONENT_WRITE_ENABLE;
 	COLUMN_WRITE_ENABLE    <= CONTROLLER_SIGS.COLUMN_WRITE_ENABLE;
 	TEMP_WRITE_ENABLE      <= CONTROLLER_SIGS.TEMP_WRITE_ENABLE;
 	MULT_ARRAY_ENABLE      <= CONTROLLER_SIGS.MULT_ARRAY_ENABLE;
 	COLUMN_IN_SEL          <= CONTROLLER_SIGS.COLUMN_IN_SEL;
 	MULT_ARRAY_SEL         <= CONTROLLER_SIGS.MULT_ARRAY_SEL;
+	DIV_SEL				   <= CONTROLLER_SIGS.DIV_SEL;
 	COUNT_ST2              <= CONTROLLER_SIGS.COUNT_ST2;
+	COUNT_RS			   <= CONTROLLER_SIGS.COUNT_RS;
+	DP_ARRAY_SAVE		   <= CONTROLLER_SIGS.DP_ARRAY_SAVE;
 	DP_ARRAY_SEL           <= CONTROLLER_SIGS.DP_ARRAY_SEL;
 	DP_ARRAY_ENABLE        <= CONTROLLER_SIGS.DP_ARRAY_ENABLE;
 	COMPONENT_NUMBER       <= CONTROLLER_SIGS.COMPONENT_NUMBER;
@@ -269,7 +357,7 @@ begin
 	DP_ARRAY_IN2           <= COLUMN_OUT;
 	
 	STEP1_DOTPROD          <= DP_ARRAY_OUT;
-	STEP1_DATA_VALID       <= DP_ARRAY_VALID;
+	--STEP1_DATA_VALID       <= DP_ARRAY_VALID; -- dp array is used 
 
 	
 	
@@ -280,7 +368,7 @@ begin
 
 	--1. INPUT TO CORRELATION MATRIX, IN STATES IDLE AND WRITE VECTOR IT IS INITIALIZED; OTHERWISE UPDATED	
 	process (COLUMN_OUT, STEP3_PROD, COLUMN_IN_SEL,INPUT_COLUMN)
-	begin
+	begin 
 
 		case COLUMN_IN_SEL is
 				--for initialization
@@ -320,6 +408,29 @@ begin
 	
 	end process;
 	
+	
+	process (STEP2_DIV_IN,SRS_OUT, DIV_SEL)
+	begin
+	
+		case DIV_SEL is
+		
+			when '0' =>
+			
+				M_DIV_AXIS_TDATA <= STEP2_DIV_IN (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
+			
+			when '1' =>
+			
+				M_DIV_AXIS_TDATA <= SRS_OUT (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
+			
+			when others =>
+			
+				M_DIV_AXIS_TDATA <= STEP2_DIV_IN (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
+			
+			
+		end case;
+	
+	end process;
+	
 
 	MULT_ARRAY_IN1   <= STEP2_INPUT when (MULT_ARRAY_SEL = '1') else STEP3_INPUT;
 	MULT_ARRAY_IN2   <= STEP1_DOTPROD when (MULT_ARRAY_SEL = '1') else TEMP_COLUMN_OUT;
@@ -331,22 +442,25 @@ begin
 
 	COMPONENT_IN     <= S_AXIS_TDATA;
 
-	M_DIV_AXIS_TDATA <= STEP2_DIV_IN (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
 	
-	
-	
+	CEM_DIV1		 <=	SRX_OUT (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
+	CEM_DIV2		 <= SRS_OUT (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
 	
 	--STEP2/3_INPUT ASSIGNMENT
 	process (CLK, RESETN)
-		variable counter : integer range 0 to NUM_BANDS + 3;
+		variable counter 	 : integer range 0 to NUM_BANDS + 3;
+		variable counter_srs : integer range 0 to NUM_BANDS + 3;
 	begin
 		if (rising_edge (CLK)) then
 			if (RESETN = '0') then
 
 				counter := 0;
+				counter_srs := 0;
 				STEP2_INPUT <= (others => '0');
 				STEP3_INPUT <= (others => '0');
-
+				RS_INPUT	<= (others => '0');
+				--DP_ARRAY_OUT_SAVED <= (others => (others => '0'));
+				
 			else
 
 				--step2 input
@@ -367,6 +481,29 @@ begin
 					STEP3_INPUT <= S_DIV_AXIS_TDATA (CORRELATION_DATA_WIDTH - 1 downto 0);
 
 				end if;
+				
+				--step3 sRs
+				if (COUNT_RS = '1' and counter_srs  < NUM_BANDS - 1 ) then
+
+					counter_srs  := counter_srs  + 1;
+					RS_INPUT <= DP_ARRAY_OUT (counter_srs);
+
+				else
+
+					counter_srs  := 0;
+
+				end if;
+				
+				
+				
+				
+				-- --save Rx for sRx calculation 
+				-- if( DP_ARRAY_VALID = '1' and  DP_ARRAY_SAVE = '1') then
+				
+					-- DP_ARRAY_OUT_SAVED <= DP_ARRAY_OUT;
+					
+				-- end if;
+				
 			end if;
 		end if;
 
