@@ -93,8 +93,8 @@ architecture Behavioral of Accelerator_Stage2 is
 		);
 	end component;
 
-	signal ripple                   : std_logic;
-	signal Stage2_DataSROut_delayed : std_logic_vector(ST2IN_DATA_WIDTH * 2 - 1 downto 0);
+	signal ripple                    : std_logic;
+	signal Stage2_DataSROut_delayed  : std_logic_vector(ST2IN_DATA_WIDTH * 2 - 1 downto 0);
 	signal Stage2_DataSROut_delayed2 : std_logic_vector(ST2IN_DATA_WIDTH * 2 - 1 downto 0);
 
 begin
@@ -137,14 +137,14 @@ begin
 	begin
 		if (rising_edge(CLK)) then
 			if (RESETN = '0') then
-				Stage2_DataSROut         <= (others         => '0');
-				Stage2_DataSROut_delayed <= (others => '0');
+				Stage2_DataSROut          <= (others => '0');
+				Stage2_DataSROut_delayed  <= (others => '0');
 				Stage2_DataSROut_delayed2 <= (others => '0');
 			else
 				if (Stage2_Enable = '1') then
-					Stage2_DataSROut_delayed <= std_logic_vector (signed (Stage2_DataSRIn) * signed (Stage2_DataSRIn));
+					Stage2_DataSROut_delayed  <= std_logic_vector (signed (Stage2_DataSRIn) * signed (Stage2_DataSRIn));
 					Stage2_DataSROut_delayed2 <= Stage2_DataSROut_delayed;
-					Stage2_DataSROut         <= Stage2_DataSROut_delayed2;
+					Stage2_DataSROut          <= Stage2_DataSROut_delayed2;
 				end if;
 			end if;
 		end if;

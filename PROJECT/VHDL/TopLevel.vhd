@@ -22,17 +22,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 use IEEE.math_real.all;
-
-package my_types_pkg is
-	type data_array is array (natural range <>) of std_logic_vector;
-	type data_matrix is array (natural range <>) of data_array;
-end package;
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 use work.my_types_pkg.all;
-use IEEE.math_real.all;
 
 -------------------------------------------------------------------------------------
 -- Definition of Ports
@@ -53,20 +43,27 @@ use IEEE.math_real.all;
 -- MATRIX_ROW             : Correlation matrix row/column data
 -- ROW_SELECT             : Select row/column
 -- STATIC_VECTOR_SR       : Element of s'R^1 vector
+-- STATIC_SRS			  : SRS static from PS
 -------------------------------------------------------------------------------
 
 
 
 entity TopLevel_Accelerator is
 	generic (
-		PIXEL_DATA_WIDTH : positive := 16;
-		BRAM_DATA_WIDTH  : positive := 32;
-		ST2IN_DATA_WIDTH : positive := 16;
-		NUM_BANDS        : positive := 16;
-		PACKET_SIZE      : positive := 16;
-		OUT_DATA_WIDTH   : positive := 32;
-		BRAM_ADDR_WIDTH  : integer  := integer(ceil(log2(real(NUM_BANDS))));
-		BRAM_ROW_WIDTH   : positive := BRAM_DATA_WIDTH * (2 ** BRAM_ADDR_WIDTH)
+		PIXEL_DATA_WIDTH   : positive := 16;
+		BRAM_DATA_WIDTH    : positive := 32;
+		ST2IN_DATA_WIDTH   : positive := 32;
+		ST3IN_DATA_WIDTH   : positive := 32;
+		ST2IN_DATA_SLIDER  : positive := 32;
+		ST3IN_DATA1_SLIDER : positive := 32;
+		ST3IN_DATA2_SLIDER : positive := 32;
+		NUM_BANDS          : positive := 16;
+		PACKET_SIZE        : positive := 16;
+		OUT_DATA_WIDTH     : positive := 32;
+		OUT_DATA1_SLIDER   : positive := 32;
+		OUT_DATA2_SLIDER   : positive := 32;
+		BRAM_ADDR_WIDTH    : integer  := integer(ceil(log2(real(NUM_BANDS))));
+		BRAM_ROW_WIDTH     : positive := BRAM_DATA_WIDTH * (2 ** BRAM_ADDR_WIDTH)
 	);
 	port (
 
@@ -86,27 +83,36 @@ entity TopLevel_Accelerator is
 		M2_AXIS_TREADY   : in std_logic;
 		MATRIX_ROW       : in std_logic_vector (BRAM_ROW_WIDTH - 1 downto 0);
 		ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
-		STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 	);
 end TopLevel_Accelerator;
 
 architecture Behavioral of TopLevel_Accelerator is
 
-	constant ST1OUT_DATA_WIDTH : integer := integer(ceil(real(BRAM_DATA_WIDTH + PIXEL_DATA_WIDTH) + log2(real(NUM_BANDS))));
-	constant ST2OUT_DATA_WIDTH : integer := integer(ceil(real(ST2IN_DATA_WIDTH + PIXEL_DATA_WIDTH) + log2(real(NUM_BANDS))));
+	constant ST1OUT_DATA_WIDTH  : integer := integer(ceil(real(BRAM_DATA_WIDTH + PIXEL_DATA_WIDTH) + log2(real(NUM_BANDS))));
+	constant ST2OUT_DATA_WIDTH  : integer := integer(ceil(real(ST2IN_DATA_WIDTH + PIXEL_DATA_WIDTH) + log2(real(NUM_BANDS))));
+	constant ST3OUT_DATA1_WIDTH : integer := integer(ceil(real(ST3IN_DATA_WIDTH + BRAM_DATA_WIDTH)));
 	--constant BRAM_ADDR_WIDTH: integer := integer(ceil(log2(real(NUM_BANDS))));
 	--constant BRAM_ROW_WIDTH: positive :=BRAM_DATA_WIDTH*(2**BRAM_ADDR_WIDTH);
 
 	component Accelerator is
 		generic (
-			PIXEL_DATA_WIDTH  : positive := 16;
-			BRAM_DATA_WIDTH   : positive := 16;
-			ST1OUT_DATA_WIDTH : positive := 16;
-			ST2IN_DATA_WIDTH  : positive := 16;
-			ST2OUT_DATA_WIDTH : positive := 16;
-			OUT_DATA_WIDTH    : positive := 16;
-			NUM_BANDS         : positive := 8;
-			BRAM_ADDR_WIDTH   : integer  := 4
+			PIXEL_DATA_WIDTH   : positive := 18;
+			BRAM_DATA_WIDTH    : positive := 32;
+			ST1OUT_DATA_WIDTH  : positive := 48;
+			ST2IN_DATA_SLIDER  : positive := 32;
+			ST2IN_DATA_WIDTH   : positive := 32;
+			ST2OUT_DATA_WIDTH  : positive := 48;
+			ST3IN_DATA1_SLIDER : positive := 32;
+			ST3IN_DATA2_SLIDER : positive := 32;
+			ST3IN_DATA_WIDTH   : positive := 32;
+			ST3OUT_DATA1_WIDTH : positive := 32;
+			OUT_DATA_WIDTH     : positive := 32;
+			OUT_DATA1_SLIDER   : positive := 32;
+			OUT_DATA2_SLIDER   : positive := 32;
+			NUM_BANDS          : positive := 16;
+			BRAM_ADDR_WIDTH    : integer  := 4
 		);
 		port (
 			CLK              : in std_logic;
@@ -119,9 +125,11 @@ architecture Behavioral of TopLevel_Accelerator is
 			DATA1_OUT        : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 			DATA2_OUT        : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 			STOP_PIPELINE    : in std_logic;
-			MATRIX_COLUMN    : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+			--MATRIX_COLUMN    : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+			MATRIX_COLUMN    : in data_array_bram;
 			ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
-			STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+			STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+			STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 		);
 	end component;
 
@@ -153,20 +161,28 @@ architecture Behavioral of TopLevel_Accelerator is
 	signal STOP1_PIPELINE : std_logic;
 	signal STOP2_PIPELINE : std_logic;
 	signal STOP_PIPELINE  : std_logic;
-	signal MATRIX_COLUMN  : data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+--	signal MATRIX_COLUMN  : data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+	signal MATRIX_COLUMN  : data_array_bram;
 
 begin
 	Accelerator_Inst : Accelerator
 	generic map
 	(
-		PIXEL_DATA_WIDTH  => PIXEL_DATA_WIDTH,
-		BRAM_DATA_WIDTH   => BRAM_DATA_WIDTH,
-		ST1OUT_DATA_WIDTH => ST1OUT_DATA_WIDTH,
-		ST2IN_DATA_WIDTH  => ST2IN_DATA_WIDTH,
-		ST2OUT_DATA_WIDTH => ST2OUT_DATA_WIDTH,
-		OUT_DATA_WIDTH    => OUT_DATA_WIDTH,
-		NUM_BANDS         => NUM_BANDS,
-		BRAM_ADDR_WIDTH   => BRAM_ADDR_WIDTH
+		PIXEL_DATA_WIDTH   => PIXEL_DATA_WIDTH,
+		BRAM_DATA_WIDTH    => BRAM_DATA_WIDTH,
+		ST1OUT_DATA_WIDTH  => ST1OUT_DATA_WIDTH,
+		ST2IN_DATA_SLIDER  => ST2IN_DATA_SLIDER,
+		ST2IN_DATA_WIDTH   => ST2IN_DATA_WIDTH,
+		ST2OUT_DATA_WIDTH  => ST2OUT_DATA_WIDTH,
+		ST3IN_DATA1_SLIDER => ST3IN_DATA1_SLIDER,
+		ST3IN_DATA2_SLIDER => ST3IN_DATA2_SLIDER,
+		ST3IN_DATA_WIDTH   => ST2IN_DATA_WIDTH,
+		ST3OUT_DATA1_WIDTH => ST3OUT_DATA1_WIDTH,
+		OUT_DATA_WIDTH     => OUT_DATA_WIDTH,
+		OUT_DATA1_SLIDER   => OUT_DATA1_SLIDER,
+		OUT_DATA2_SLIDER   => OUT_DATA2_SLIDER,
+		NUM_BANDS          => NUM_BANDS,
+		BRAM_ADDR_WIDTH    => BRAM_ADDR_WIDTH
 	)
 	port map(
 		CLK              => CLK,
@@ -181,7 +197,8 @@ begin
 		STOP_PIPELINE    => STOP_PIPELINE,
 		MATRIX_COLUMN    => MATRIX_COLUMN,
 		ROW_SELECT       => ROW_SELECT,
-		STATIC_VECTOR_SR => STATIC_VECTOR_SR
+		STATIC_VECTOR_SR => STATIC_VECTOR_SR,
+		STATIC_SRS 		 => STATIC_SRS
 	);
 
 	MasterOutput1_Inst : MasterOutput

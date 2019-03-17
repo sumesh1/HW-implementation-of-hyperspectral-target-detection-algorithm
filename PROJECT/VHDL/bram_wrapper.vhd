@@ -65,7 +65,8 @@ entity BRAM_WRAPPER is
 		--BRAM SIGNALS
 		MATRIX_ROW       : out std_logic_vector(BRAM_DATA_WIDTH * NUM_BANDS - 1 downto 0);
 		ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
-		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 	);
 end BRAM_WRAPPER;
 
@@ -106,7 +107,8 @@ architecture arch_imp of BRAM_WRAPPER is
 			S_AXI_RREADY     : in std_logic;
 			MATRIX_ROW       : out std_logic_vector(BRAM_DATA_WIDTH * NUM_BANDS - 1 downto 0);
 			ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
-			STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+			STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+			STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 		);
 	end component AXI_BRAM;
 
@@ -145,7 +147,8 @@ begin
 		S_AXI_RREADY     => s00_axi_rready,
 		MATRIX_ROW       => MATRIX_ROW,
 		ROW_SELECT       => ROW_SELECT,
-		STATIC_VECTOR_SR => STATIC_VECTOR_SR
+		STATIC_VECTOR_SR => STATIC_VECTOR_SR,
+		STATIC_SRS       => STATIC_SRS
 	);
 
 	-- Add user logic here

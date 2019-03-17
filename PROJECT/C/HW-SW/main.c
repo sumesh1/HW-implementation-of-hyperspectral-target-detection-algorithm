@@ -76,15 +76,47 @@ int main()
     printf("%.15f %.15f %.15f \n", R[0][0],R[0][1],R[0][2]);
 #endif
 
-    //convert to FIXED POINT MULT WITH 2^41 for R^-1
+	//find maximum in R
+	double maximum = R[0][0];
+	double minimum = R[0][0];
+
+	 for(int i=0;i<N_bands; i++){
+    	for(int j=0;j<N_bands;j++){
+    		if ( R[i][j] > maximum )
+				maximum = R[i][j];
+			if ( R[i][j] < minimum )
+				minimum = R[i][j];	
+    	}
+    }	
+	
+	double p1 = fabs(floor((1<<30)/maximum));
+    double p2 = fabs(floor((1<<30)/minimum));
+
+
+     if(p1 > p2)
+        p1 = p2;
+
+	p1 = floor(log2(p1));
+   
+    double shift = pow(2,p1);
+
+	//determine normalization and convert to 2^30 range
+	for(int i=0;i<N_bands; i++){
+    	for(int j=0;j<N_bands;j++){
+    		R[i][j] *= shift;
+        }
+	}
+		
+    //convert to FIXED POINT
     for(int i=0;i<N_bands; i++){
     	for(int j=0;j<N_bands;j++){
-    		R32[i][j]= (s32)( R[i][j]*2199023255552);
+    		R32[i][j]= (s32)( R[i][j]);
     	}
     }
 
 #ifdef DEBUG
-    printf("inverted fp: \n");
+	printf("shifted by 2 ^ %f \n",p1);
+    printf("inverted fixed point \n");
     printf("%ld %ld %ld \n", R32[0][0],R32[0][1],R32[0][2]);
     printf("%ld %ld %ld \n", R32[1][0],R32[1][1],R32[1][2]);
     printf("%ld %ld %ld \n", R32[2][0],R32[2][1],R32[2][2]);
@@ -94,12 +126,38 @@ int main()
     //Prepare s'*R^-1
     arrayMatrixProduct(N_bands,target,R,sR);
 
+	//find maximum in sR
+	maximum = sR[0];
+	minimum = sR[0];
+
+	 for(int i=0;i<N_bands; i++){
+		if ( sR[i] > maximum )
+			maximum = sR[i];
+		if ( sR[i] < minimum )
+			minimum = sR[i];	
+    }
+	
+	p1 = fabs(floor((1<<30)/maximum));
+	p2 = fabs(floor((1<<30)/minimum));
+	
+	 if(p1 > p2)
+        p1 = p2;
+
+	p1 = floor(log2(p1));
+   
+	shift = pow(2,p1);
+	
+	for(int i = 0;i < N_bands; i++){
+		sR[i] *= shift;
+    	}
+
     //convert to FIXED POINT MULT WITH 2^36
     for(int j = 0;j < N_bands; j++){
-        		sR32[j]	= (s32)( sR[j]*68719476736);
+        		sR32[j]	= (s32)( sR[j]);
         	}
 
 #ifdef DEBUG
+	printf("shifted by 2 ^ %f \n",p1);
     printf("sR fp: \n");
     printf("%ld %ld %ld \n", sR32[0],sR32[1],sR32[2]);
 #endif
@@ -107,9 +165,15 @@ int main()
     //Prepare sR^-1*s
     double sRs = scalarProduct(sR,target,N_bands);
     //double temp1,temp2;
-
+	
+	p1 = fabs(floor((1<<30)/sRs));
+	p1 = floor(log2(p1));   
+	shift = pow(2,p1);
+	
+	s32 sRs32 = (s32)(sRs*shift);
 
 #ifdef DEBUG
+	printf("shifted by 2 ^ %f \n",p1);
     printf("sRs is %f \n", sRs);
     printf("Start calculating ACE...\n");
 #endif
@@ -119,6 +183,9 @@ int main()
 #ifdef DEBUG
     xil_printf("UPLOAD MATRIX \n");
 #endif
+
+	//disable debug while writing
+	*(BRAM_BASE_ADDR + 3) = 0;
 
     //WRITING inverted correlation matrix to BRAM
     for(int i = 0; i < N_bands; i++){
@@ -140,6 +207,9 @@ int main()
 
 			*(BRAM_BASE_ADDR + 1) = sR32[i];
 		}
+		
+	//WRITING sRs 
+	*(BRAM_BASE_ADDR + 2) = sRs32;
 
 
 #ifdef DEBUG
@@ -191,12 +261,12 @@ int main()
 
 
     //last multiplication
-    	for(int i=0; i < N_pixels; i++)
-    		result[i] = (double)receiver[i] * sRs;
+    	/*for(int i=0; i < N_pixels; i++)
+    		result[i] = (double)receiver[i] * sRs;*/
 
 #ifdef DEBUG
-    	for(int i=0; i < 40; i++)
-    		printf("%f %f; ", (double)receiver[i],result[i]);
+    	/*for(int i=0; i < 40; i++)
+    		printf("%f %f; ", (double)receiver[i],result[i]);*/
 #endif
 
     //HW ACCELERATOR END

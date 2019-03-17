@@ -48,14 +48,21 @@ use work.my_types_pkg.all;
 
 entity Accelerator is
 	generic (
-		PIXEL_DATA_WIDTH  : positive := 18;
-		BRAM_DATA_WIDTH   : positive := 25;
-		ST1OUT_DATA_WIDTH : positive := 48;
-		ST2IN_DATA_WIDTH  : positive := 25;
-		ST2OUT_DATA_WIDTH : positive := 48;
-		OUT_DATA_WIDTH    : positive := 32;
-		NUM_BANDS         : positive := 16;
-		BRAM_ADDR_WIDTH   : integer  := 4
+		PIXEL_DATA_WIDTH   : positive := 18;
+		BRAM_DATA_WIDTH    : positive := 32;
+		ST1OUT_DATA_WIDTH  : positive := 48;
+		ST2IN_DATA_SLIDER  : positive := 32;
+		ST2IN_DATA_WIDTH   : positive := 32;
+		ST2OUT_DATA_WIDTH  : positive := 48;
+		ST3IN_DATA1_SLIDER : positive := 32;
+		ST3IN_DATA2_SLIDER : positive := 32;
+		ST3IN_DATA_WIDTH   : positive := 32;
+		ST3OUT_DATA1_WIDTH : positive := 32;
+		OUT_DATA_WIDTH     : positive := 32;
+		OUT_DATA1_SLIDER   : positive := 32;
+		OUT_DATA2_SLIDER   : positive := 32;
+		NUM_BANDS          : positive := 16;
+		BRAM_ADDR_WIDTH    : integer  := 4
 	);
 	port (
 		CLK              : in std_logic;
@@ -68,12 +75,14 @@ entity Accelerator is
 		DATA1_OUT        : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 		DATA2_OUT        : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 		STOP_PIPELINE    : in std_logic;
-		MATRIX_COLUMN    : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+		--MATRIX_COLUMN    : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+		MATRIX_COLUMN    : in data_array_bram;
 		ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
-		STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 	);
 end Accelerator;
-
+ 
 ------------------------------------------------------------------------------
 -- Architecture Section
 ------------------------------------------------------------------------------
@@ -93,9 +102,11 @@ architecture Behavioral of Accelerator is
 			Stage1_Enable      : in std_logic;
 			Stage1_DataIn      : in std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 			Stage1_DataValid   : out std_logic;
-			Stage1_DataOut     : out data_array (0 to NUM_BANDS - 1)(ST1OUT_DATA_WIDTH - 1 downto 0);
+			--Stage1_DataOut     : out data_array (0 to NUM_BANDS - 1)(ST1OUT_DATA_WIDTH - 1 downto 0);
+			Stage1_DataOut     : out data_array_st1;
 			Stage1_DataSROut   : out std_logic_vector (ST1OUT_DATA_WIDTH - 1 downto 0);
-			CORR_MATRIX_COLUMN : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+			--CORR_MATRIX_COLUMN : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
+			CORR_MATRIX_COLUMN : in data_array_bram;
 			STATIC_VECTOR_SR   : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
 		);
 	end component;
@@ -119,6 +130,31 @@ architecture Behavioral of Accelerator is
 			Stage2_DataSROut : out std_logic_vector(ST2IN_DATA_WIDTH * 2 - 1 downto 0)
 		);
 	end component;
+	
+	component Accelerator_Stage3 is
+		generic (
+			PIXEL_DATA_WIDTH   : positive := 16;
+			BRAM_DATA_WIDTH	   : positive := 32;
+			ST3IN_DATA_WIDTH   : positive := 32;
+			ST3OUT_DATA1_WIDTH : positive := 32;
+			NUM_BANDS          : positive := 8
+		);
+		port (
+			CLK              : in std_logic;
+			RESETN           : in std_logic;
+			Stage3_Enable    : in std_logic;
+			Stage3_DataIn1   : in std_logic_vector(ST3IN_DATA_WIDTH - 1 downto 0);
+			Stage3_DataIn2   : in std_logic_vector(ST3IN_DATA_WIDTH - 1 downto 0);
+			Stage3_DataSRS   : in std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
+			Stage3_DataValid : out std_logic;
+			Stage3_DataOut1  : out std_logic_vector(ST3OUT_DATA1_WIDTH - 1 downto 0);
+			Stage3_DataOut2  : out std_logic_vector(ST3IN_DATA_WIDTH - 1 downto 0)
+		);
+	end component;
+	
+	
+	
+	
 	--Data types
 	-- type OutputsType is array (0 to NUM_BANDS-1) of std_logic_vector(DATA_WIDTH-1 downto 0);
 	type SHR is array (0 to NUM_BANDS + 1 + 1 ) of std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
@@ -130,19 +166,31 @@ architecture Behavioral of Accelerator is
 	signal Stage1_DataIn	  : std_logic_vector (PIXEL_DATA_WIDTH - 1 downto 0);
 	signal Stage1_Enable      : std_logic;
 	signal Stage1_DataValid   : std_logic;
-	signal Stage1_DataOut     : data_array (0 to NUM_BANDS - 1)(ST1OUT_DATA_WIDTH - 1 downto 0);
-	signal Stage1_Repacked    : data_array (0 to NUM_BANDS - 1)(ST2IN_DATA_WIDTH - 1 downto 0);
+	--signal Stage1_DataOut     : data_array (0 to NUM_BANDS - 1)(ST1OUT_DATA_WIDTH - 1 downto 0);
+	--signal Stage1_Repacked    : data_array (0 to NUM_BANDS - 1)(ST2IN_DATA_WIDTH - 1 downto 0);
+	signal Stage1_DataOut     : data_array_st1;
+	signal Stage1_Repacked    : data_array_st1r;
 	signal Stage1_DataSROut   : std_logic_vector (ST1OUT_DATA_WIDTH - 1 downto 0);
 	
 	--Stage 2 signals
 	signal Stage2_Enable      : std_logic;
 	signal Stage2_DataValid   : std_logic;
 	signal Stage2_DataIn      : std_logic_vector(ST2IN_DATA_WIDTH - 1 downto 0);
-	signal Stage2_DataIn_All  : data_array (0 to NUM_BANDS - 1)(ST2IN_DATA_WIDTH - 1 downto 0);
+	--signal Stage2_DataIn_All  : data_array (0 to NUM_BANDS - 1)(ST2IN_DATA_WIDTH - 1 downto 0);
+	signal Stage2_DataIn_All  : data_array_st1r;
 	signal Stage2_DataOut     : std_logic_vector(ST2OUT_DATA_WIDTH - 1 downto 0);
 	signal Stage2_Count       : natural range 0 to NUM_BANDS - 1;
 	signal Stage2_DataSRIn    : std_logic_vector(ST2IN_DATA_WIDTH - 1 downto 0);
 	signal Stage2_DataSROut   : std_logic_vector(ST2IN_DATA_WIDTH * 2 - 1 downto 0);
+	
+	--Stage 3 signals
+	signal Stage3_Enable    : std_logic;
+	signal Stage3_DataIn1   : std_logic_vector(ST3IN_DATA_WIDTH - 1 downto 0);
+	signal Stage3_DataIn2   : std_logic_vector(ST3IN_DATA_WIDTH - 1 downto 0);
+	signal Stage3_DataSRS   : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
+	signal Stage3_DataValid : std_logic;
+	signal Stage3_DataOut1  : std_logic_vector(ST3OUT_DATA1_WIDTH - 1 downto 0);
+	signal Stage3_DataOut2  : std_logic_vector(ST3IN_DATA_WIDTH - 1 downto 0);
 
 	-- TLAST signal
 	signal tlast              : std_logic;
@@ -201,6 +249,31 @@ begin
 		Stage2_DataSROut => Stage2_DataSROut
 
 	);
+	
+	Accelerator_Stage3_inst : Accelerator_Stage3
+	generic map
+	(
+		PIXEL_DATA_WIDTH   => PIXEL_DATA_WIDTH,
+		BRAM_DATA_WIDTH	   => BRAM_DATA_WIDTH,
+		ST3IN_DATA_WIDTH   => ST2IN_DATA_WIDTH,
+		ST3OUT_DATA1_WIDTH => ST3OUT_DATA1_WIDTH,
+		NUM_BANDS          => NUM_BANDS
+	)
+	port map
+	(
+		CLK              => CLK,
+		RESETN           => RESETN,
+		Stage3_Enable    => Stage3_Enable,   
+		Stage3_DataIn1   => Stage3_DataIn1,  
+		Stage3_DataIn2   => Stage3_DataIn2 , 
+		Stage3_DataSRS   => Stage3_DataSRS,  
+		Stage3_DataValid => Stage3_DataValid,
+		Stage3_DataOut1  => Stage3_DataOut1 ,
+		Stage3_DataOut2  => Stage3_DataOut2 
+
+	);
+	
+	
 	----------------------------------------------------------------------------------	 
 	-- SHIFT REGISTER
 	----------------------------------------------------------------------------------	
@@ -225,8 +298,9 @@ begin
 	----------------------------------------------------------------------------------
 	repack : for i in 0 to NUM_BANDS - 1 generate
 		--Stage1_Repacked (i) <= Stage1_DataOut (i)(ST1OUT_DATA_WIDTH-2-BRAM_ADDR_WIDTH downto ST1OUT_DATA_WIDTH-ST2IN_DATA_WIDTH-1-BRAM_ADDR_WIDTH);
-		Stage1_Repacked (i) <= Stage1_DataOut (i)(ST1OUT_DATA_WIDTH-2 downto ST1OUT_DATA_WIDTH-ST2IN_DATA_WIDTH-1);
+		--Stage1_Repacked (i) <= Stage1_DataOut (i)(ST1OUT_DATA_WIDTH-2 downto ST1OUT_DATA_WIDTH-ST2IN_DATA_WIDTH-1);
 		--Stage1_Repacked (i) <= Stage1_DataOut (i)(41 downto 41 - ST2IN_DATA_WIDTH - 1 + 2);
+		Stage1_Repacked (i) <= Stage1_DataOut (i)(ST2IN_DATA_SLIDER downto ST2IN_DATA_SLIDER - ST2IN_DATA_WIDTH + 1);
 	end generate;
 
 	Stage2_DataIn <= Stage2_DataIn_All (Stage2_Count);
@@ -247,7 +321,8 @@ begin
 				else
 					if (Stage1_DataValid = '1') then
 						Stage2_DataIn_All <= Stage1_Repacked;
-						Stage2_DataSRIn   <= Stage1_DataSROut (ST1OUT_DATA_WIDTH - 2 downto ST1OUT_DATA_WIDTH - ST2IN_DATA_WIDTH - 1);
+						--Stage2_DataSRIn   <= Stage1_DataSROut (ST1OUT_DATA_WIDTH - 2 downto ST1OUT_DATA_WIDTH - ST2IN_DATA_WIDTH - 1);
+						Stage2_DataSRIn   <= Stage1_DataSROut (ST2IN_DATA_SLIDER downto ST2IN_DATA_SLIDER - ST2IN_DATA_WIDTH + 1);
 						Stage2_Count      <= 0;
 						Stage2_Enable     <= '1';
 						started := '1';
@@ -264,6 +339,17 @@ begin
 
 	end process Stage2;
 	
+	--------------------------------------------------------------------------------	 
+	--STAGE 3 Signals   
+	----------------------------------------------------------------------------------
+	
+	Stage3_Enable    <= Stage2_DataValid;
+	--Stage3_DataIn1   <= Stage2_DataOut(ST2OUT_DATA_WIDTH - 2 downto ST2OUT_DATA_WIDTH - DATA1_OUT'length - 1);
+	Stage3_DataIn1   <= Stage2_DataOut   (ST3IN_DATA1_SLIDER downto ST3IN_DATA1_SLIDER - ST3IN_DATA_WIDTH + 1);
+	Stage3_DataIn2   <= Stage2_DataSROut (ST3IN_DATA2_SLIDER downto ST3IN_DATA2_SLIDER - ST3IN_DATA_WIDTH + 1);
+	Stage3_DataSRS   <= STATIC_SRS;
+
+	
 	----------------------------------------------------------------------------------	 
 	--AXI PROTOCOL    
 	----------------------------------------------------------------------------------
@@ -273,9 +359,15 @@ begin
 	S_AXIS_TREADY_temp <= '0' when STOP_PIPELINE = '1' else '1';
 	S_AXIS_TREADY      <= S_AXIS_TREADY_temp;
 
-	DATA_OUT_VALID     <= Stage2_DataValid;
-	DATA1_OUT          <= Stage2_DataOut(ST2OUT_DATA_WIDTH - 2 downto ST2OUT_DATA_WIDTH - DATA1_OUT'length - 1);
-	DATA2_OUT          <= Stage2_DataSROut (ST2IN_DATA_WIDTH*2 - 2 downto ST2IN_DATA_WIDTH*2 - DATA2_OUT'length - 1);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));-
+	DATA_OUT_VALID 	   <= Stage3_DataValid;
+	
+--truncate here OUT_DATA_SLIDER OUT_DATA_WIDTH
+	DATA1_OUT 		   <= Stage3_DataOut1 (OUT_DATA1_SLIDER downto OUT_DATA1_SLIDER - OUT_DATA_WIDTH + 1);
+	DATA2_OUT	 	   <= Stage3_DataOut2 (OUT_DATA2_SLIDER downto OUT_DATA2_SLIDER - OUT_DATA_WIDTH + 1);
+
+	--DATA_OUT_VALID     <= Stage2_DataValid;
+	--DATA1_OUT          <= Stage2_DataOut(ST2OUT_DATA_WIDTH - 2 downto ST2OUT_DATA_WIDTH - DATA1_OUT'length - 1);
+	--DATA2_OUT          <= Stage2_DataSROut (ST2IN_DATA_WIDTH*2 - 2 downto ST2IN_DATA_WIDTH*2 - DATA2_OUT'length - 1);---std_logic_vector(resize(signed(Stage2_DataSROut), DATA2_OUT'length));-
 	
 	----------------------------------------------------------------------------------	 
 	--BRAM CORRELATION MATRIX ROW SELECTION  
