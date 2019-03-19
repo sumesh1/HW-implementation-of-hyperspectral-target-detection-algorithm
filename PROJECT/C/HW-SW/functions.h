@@ -98,7 +98,7 @@ extern datatype target[N_bands];
 extern s32 R32[N_bands][N_bands];
 extern s32 sR32[N_bands];
 extern volatile u32 *BRAM_BASE_ADDR;
-extern s32 receiver [N_pixels];
+extern outputtype receiver [N_pixels];
 extern XAxiDma AxiDma;		/* Instance of the XAxiDma */
 extern INTC Intc;	/* Instance of the Interrupt Controller */
 extern volatile int TxDone;
@@ -122,10 +122,10 @@ extern void xil_printf(const char *format, ...);
 static void Uart550_Setup(void);
 #endif
 
-int ReceiveData(s32* array, int Length);
+int ReceiveData(outputtype* array, int Length);
 void TxIntrHandler(void *Callback);
 void RxIntrHandler(void *Callback);
-int main_DMA(datatype* array,s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS);
+int main_DMA(datatype* array,outputtype* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS);
 int setup_DMA(void);
 
 int SetupIntrSystem(INTC * IntcInstancePtr,
@@ -140,9 +140,9 @@ u32 stop_timer (u8 TmrCtrNumber );
 double scalarProduct (double*, datatype*, int);
 double scalarProduct2 (datatype* a, datatype* b, int N);
 int FfsSd(char*, datatype * );
-int FfsSdWrite (char*, s32 *);
+int FfsSdWrite (char*, outputtype *);
 int read_data(char*, datatype * );
-int write_data(char*, s32 *);
+int write_data(char*, outputtype *);
 //void matrixMult(s16*,s16*,s16*);
 //void removeMean(s16*,s32*,int,int);
 void hyperCorr (datatype *, double (*)[], int, int, int);
@@ -153,3 +153,4 @@ void GaussJordan (int size, double R[size][size], double B[size][size]);
 int ACE(double);
 int CEM(double sRs);
 double SAM (datatype *x, datatype *s, double target_product, int N);
+void printBits(size_t const size, void const * const ptr);

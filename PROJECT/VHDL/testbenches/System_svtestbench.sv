@@ -99,7 +99,7 @@ logic [32-1:0] sR[16-1:0];
 initial
   $readmemh("D:/SmallSAT/HW-implementation-of-hyperspectral-target-detection-algorithm/PROJECT/SIMULATION_FILES/stat.txt", sR);
   
- logic [32-1:0] sRs = 32'd1573086748;
+ logic [32-1:0] sRs = 32'd1566759688;
 
 
 initial 

@@ -32,7 +32,7 @@ datatype target[N_bands] = {};
 volatile u32 *BRAM_BASE_ADDR = XPAR_BRAM_WRAPPER_0_BASEADDR;
 s32 R32[N_bands][N_bands] = {};
 s32 sR32[N_bands] = {};
-s32 receiver [N_pixels] = {};
+outputtype receiver [N_pixels] = {};
 XAxiDma AxiDma;		/* Instance of the XAxiDma */
 INTC Intc;	/* Instance of the Interrupt Controller */
 volatile int TxDone;
@@ -387,7 +387,7 @@ int read_data(char *File_Name, datatype * OutputArray)
 
 /*****************************************************************************/
 
-int write_data(char *File_Name, s32 * OutputArray)
+int write_data(char *File_Name, outputtype * OutputArray)
 {
 	int Status;
 
@@ -497,7 +497,7 @@ int FfsSd(char* File_Name, datatype* OutputArray)
 
 /*****************************************************************************/
 
-int FfsSdWrite (char * File_Name, s32 * OutputArray)
+int FfsSdWrite (char * File_Name, outputtype * OutputArray)
 {
 	FRESULT Res;
 	UINT NumBytesWritten;
@@ -759,7 +759,7 @@ u32 stop_timer (u8 TmrCtrNumber ){
 
 
 /******************************************************************************/
-int ReceiveData(s32* array, int Length)
+int ReceiveData(outputtype* array, int Length)
 {
 
 	Xil_DCacheInvalidateRange((UINTPTR)array, Length);
@@ -1100,7 +1100,7 @@ int setup_DMA(void)
 		return XST_SUCCESS;
 }
 
-int main_DMA(datatype * array, s32* receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS)
+int main_DMA(datatype * array, outputtype * receiver, int MAX_PKT_LEN, int NUMBER_OF_TRANSFERS)
 {
 	int Status;
 	int Tries = NUMBER_OF_TRANSFERS;
@@ -1191,6 +1191,23 @@ Done:
 	//xil_printf("--- Exiting main() --- \r\n");
 
 	return XST_SUCCESS;
+}
+
+void printBits(size_t const size, void const * const ptr)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte;
+    int i, j;
+
+    for (i=size-1;i>=0;i--)
+    {
+        for (j=7;j>=0;j--)
+        {
+            byte = (b[i] >> j) & 1;
+            xil_printf("%u", byte);
+        }
+    }
+    puts("");
 }
 
 

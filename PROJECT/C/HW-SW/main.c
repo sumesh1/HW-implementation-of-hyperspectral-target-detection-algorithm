@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "platform.h"
 #include "xil_printf.h"
 #include "xparameters.h"
@@ -14,7 +15,7 @@
 #include "det_parameters.h"
 
 
-#define MAX_PKT_LEN (N_bands*N_pixels)
+#define MAX_PKT_LEN (N_bands*N_pixels*2)
 #define NUMBER_OF_TRANSFERS (1)
 
 
@@ -44,8 +45,13 @@ int main()
     read_data(TargetFile,target);
 
 #ifdef DEBUG
-    printf("%d %d %d \n",HyperData[0],HyperData[1],HyperData[2]);
-
+    xil_printf("HyperData : \n");
+    for(int j = 0; j < 3; j++){
+    	for(int i = j*N_bands ; i < j*N_bands + N_bands; i++){
+    		xil_printf("%d;",HyperData[i]);
+    	}
+    	xil_printf("\n");
+    }
     //Calculate Correlation Matrix R
     printf("Started calculating R...\n");
 #endif
@@ -85,32 +91,27 @@ int main()
     		if ( R[i][j] > maximum )
 				maximum = R[i][j];
 			if ( R[i][j] < minimum )
-				minimum = R[i][j];	
+				minimum = R[i][j];
     	}
-    }	
-	
-	double p1 = fabs(floor((1<<30)/maximum));
-    double p2 = fabs(floor((1<<30)/minimum));
+    }
+
+	double p1 = fabs(floor(pow(2,31)/maximum));
+    double p2 = fabs(floor(pow(2,31)/minimum));
 
 
-     if(p1 > p2)
-        p1 = p2;
+    if(p1 > p2) {
+    	p1 = p2;
+    }
 
 	p1 = floor(log2(p1));
-   
+
     double shift = pow(2,p1);
 
-	//determine normalization and convert to 2^30 range
-	for(int i=0;i<N_bands; i++){
-    	for(int j=0;j<N_bands;j++){
-    		R[i][j] *= shift;
-        }
-	}
-		
+
     //convert to FIXED POINT
     for(int i=0;i<N_bands; i++){
     	for(int j=0;j<N_bands;j++){
-    		R32[i][j]= (s32)( R[i][j]);
+    		R32[i][j]= (s32)( R[i][j]*shift);
     	}
     }
 
@@ -126,6 +127,11 @@ int main()
     //Prepare s'*R^-1
     arrayMatrixProduct(N_bands,target,R,sR);
 
+	#ifdef DEBUG
+		printf("sR floating: \n");
+		printf("%f %f %f \n", sR[0],sR[1],sR[2]);
+	#endif
+
 	//find maximum in sR
 	maximum = sR[0];
 	minimum = sR[0];
@@ -134,26 +140,23 @@ int main()
 		if ( sR[i] > maximum )
 			maximum = sR[i];
 		if ( sR[i] < minimum )
-			minimum = sR[i];	
+			minimum = sR[i];
     }
-	
-	p1 = fabs(floor((1<<30)/maximum));
-	p2 = fabs(floor((1<<30)/minimum));
-	
-	 if(p1 > p2)
-        p1 = p2;
+
+	p1 = fabs(floor(pow(2,31)/maximum));
+	p2 = fabs(floor(pow(2,31)/minimum));
+
+	  if(p1 > p2) {
+			p1 = p2;
+		}
 
 	p1 = floor(log2(p1));
-   
+
 	shift = pow(2,p1);
-	
-	for(int i = 0;i < N_bands; i++){
-		sR[i] *= shift;
-    	}
 
     //convert to FIXED POINT MULT WITH 2^36
     for(int j = 0;j < N_bands; j++){
-        		sR32[j]	= (s32)( sR[j]);
+        		sR32[j]	= (s32)( sR[j]*shift);
         	}
 
 #ifdef DEBUG
@@ -165,16 +168,17 @@ int main()
     //Prepare sR^-1*s
     double sRs = scalarProduct(sR,target,N_bands);
     //double temp1,temp2;
-	
-	p1 = fabs(floor((1<<30)/sRs));
-	p1 = floor(log2(p1));   
+
+	p1 = fabs(floor(pow(2,31)/sRs));
+	p1 = floor(log2(p1));
 	shift = pow(2,p1);
-	
+
 	s32 sRs32 = (s32)(sRs*shift);
 
 #ifdef DEBUG
+	printf("sRs is %f \n", sRs);
 	printf("shifted by 2 ^ %f \n",p1);
-    printf("sRs is %f \n", sRs);
+    printf("sRs is %ld \n", sRs32);
     printf("Start calculating ACE...\n");
 #endif
 
@@ -207,8 +211,8 @@ int main()
 
 			*(BRAM_BASE_ADDR + 1) = sR32[i];
 		}
-		
-	//WRITING sRs 
+
+	//WRITING sRs
 	*(BRAM_BASE_ADDR + 2) = sRs32;
 
 
@@ -236,6 +240,7 @@ int main()
 
 
 
+//SEND DATA TO ACCELERATOR
 
 	int Status;
 
@@ -246,18 +251,55 @@ int main()
 				}
 
 
-	//send packets
+	//send and receive packets
 	Status = main_DMA(HyperData, receiver, MAX_PKT_LEN, NUMBER_OF_TRANSFERS);
 	if (Status != XST_SUCCESS) {
 				return XST_FAILURE;
 			}
 
-	ReceiveData (receiver,N_pixels);
+
+
+	ReceiveData (receiver,N_pixels*2);
+
+
 
 #ifdef DEBUG
-    	for(int i = 0 ; i<40; i++)
-    		xil_printf("%d; ", receiver[i]);
+
+	u32 *temparr;
+	temparr = (u32) receiver;
+
+	for (int v = 0 ; v<5; v++){
+		for(int i = v*30 ; i < v*30+30; i++)
+    		xil_printf("%lu; ", temparr[i]);
+
+    	xil_printf("\n");
+	}
+
+	xil_printf("end\n");
+
+	for(int i = N_pixels*2-100 ; i < N_pixels*2 ; i++)
+	    xil_printf("%lu; ", temparr[i]);
+
+	    	xil_printf("\n");
+
+	xil_printf("%lu; ", temparr[N_pixels-2]);
+	xil_printf("%lu; ", temparr[N_pixels-1]);
+
+	xil_printf("\n");
+
+	xil_printf("jumps \n");
+	for(int i = 0 ; i < N_pixels*2; i=i+4444){
+	    		xil_printf("%lu; ", temparr[i]);
+		}
+
+	xil_printf(" \n");
+	printBits(sizeof(receiver[0]),&receiver[0]);
+	printBits(sizeof(receiver[1]),&receiver[1]);
+	printBits(sizeof(receiver[2]),&receiver[2]);
+
 #endif
+
+
 
 
     //last multiplication
