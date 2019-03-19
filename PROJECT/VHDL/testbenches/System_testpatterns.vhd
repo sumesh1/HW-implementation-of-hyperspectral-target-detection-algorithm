@@ -177,7 +177,7 @@ begin
 	begin
 		--count <= 0;
 		S_AXIS_TLAST <= '0';
-		file_open(file_VECTORS, "D:/SmallSAT/HW-implementation-of-hyperspectral-target-detection-algorithm/PROJECT/SIMULATION_FILES/cube.txt", read_mode);
+		file_open(file_VECTORS, "cube.txt", read_mode);
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
 		S_AXIS_TDATA <= (others => '0');
@@ -325,7 +325,7 @@ begin
 		variable v_SPACE : character;
 		variable count   : integer;
 	begin
-		file_open(file_RESULTS, "C:\Users\Dordije\Desktop\res.txt", write_mode);
+		file_open(file_RESULTS, "C:\res.txt", write_mode);
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
 		wait until CLK = '1' and CLK'event;

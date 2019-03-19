@@ -18,9 +18,9 @@
 */
 
 import axi_vip_pkg::*;
-import sys_axi_vip_0_0_pkg::*;
+import simulation_axi_vip_0_0_pkg::*;
 
-module System_svtb;
+module simulation_svtb;
 
 parameter PIXEL_DATA_WIDTH       = 16;
 parameter BRAM_DATA_WIDTH       = 32;
@@ -51,7 +51,7 @@ integer 		i = 0;
 
 
 //Design under test
-sys_wrapper DUT
+simulation_wrapper DUT
 (
 
    .M_AXIS_DOUT_tdata (M_AXIS_tdata), 
@@ -83,21 +83,21 @@ VHDL_testbench  #(PIXEL_DATA_WIDTH,BRAM_DATA_WIDTH, NUM_BANDS,OUT_DATA_WIDTH) VH
 	
 );
 
-sys_axi_vip_0_0_mst_t 	master_agent;
+simulation_axi_vip_0_0_mst_t 	master_agent;
 
 // matrix file
 logic [32-1:0] matrix[16*16-1:0 ];
 
 // get memory contents from file
 initial
-  $readmemh("D:/SmallSAT/HW-implementation-of-hyperspectral-target-detection-algorithm/PROJECT/SIMULATION_FILES/matrix.txt", matrix);
+  $readmemh("matrix.txt", matrix);
 
 // sR file
 logic [32-1:0] sR[16-1:0];
 
 // get memory contents from file
 initial
-  $readmemh("D:/SmallSAT/HW-implementation-of-hyperspectral-target-detection-algorithm/PROJECT/SIMULATION_FILES/stat.txt", sR);
+  $readmemh("stat.txt", sR);
   
  logic [32-1:0] sRs = 32'd1566759688;
 
@@ -106,7 +106,7 @@ initial
 begin
 	START = 0;
     //Create an agent
-    master_agent = new("master vip agent", DUT.sys_i.axi_vip_0.inst.IF);
+    master_agent = new("master vip agent", DUT.simulation_i.axi_vip_0.inst.IF);
   
     // set tag for agents for easy debug
     master_agent.set_agent_tag("Master VIP");
