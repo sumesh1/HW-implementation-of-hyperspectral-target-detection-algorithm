@@ -1,23 +1,27 @@
 % created by: Dordije Boskovic
 
-function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
+function [results,mapexcluded] = hyperAceR_RTA_SM_I(M, S, beta, th)
 
-    th = 0.1;
-
+    if(nargin<3) 
+        th = 0.1;
+        beta = 10000;
+    end
+    
 	[p, N] = size(M);
     t = round(N/100);
     
-    results = zeros(1, N);
+    G = beta*eye(p,p);
 	
     res_mean = 0;
     mapexcluded = zeros(N,1);
     
-    beta = 10000;
-	G = beta*eye(p,p);
+
+    
+    results = zeros(1, N);
   
     for k = 1:N
 
-      x = M(:,k);
+         x = M(:,k);
 
         %calculate detection statistic
         tmp2 = S.'*G;
@@ -52,6 +56,7 @@ function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
         
     end
     
+    %% restream
     for k = 1:t
 
         x = M(:,k);
@@ -60,9 +65,6 @@ function [results,mapexcluded] = hyperAceR_RTAM01(M, S)
         tmp2 = S.'*G;
         tmp = (tmp2*S);
         results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
-
-        %update matrix
-        %G = G - ((G*x)*(x'*G))./(1+x'*G*x);
 
     end
 

@@ -27,7 +27,7 @@ end
 
 % ASMF has the weight n, by default =1
 
-if nargin == 2 
+if (nargin <3)
     n = 2; 
 end
 
@@ -39,6 +39,8 @@ G = inv(R);
 
 t1 = G*target;
 t2 = target'*t1;
+
+results = zeros(1,N);
 
 	for k = 1:N
 		

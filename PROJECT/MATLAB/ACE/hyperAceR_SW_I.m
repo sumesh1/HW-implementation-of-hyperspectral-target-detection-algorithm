@@ -15,6 +15,9 @@ function [results] = hyperAceR_SW_I(M, S,beta)
 %   results - vector of detector output (N x 1)
 %
 
+    if(nargin < 3)
+        beta = 10000;
+    end
 
 	[p, N] = size(M);
     

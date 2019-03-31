@@ -15,6 +15,10 @@ function [results,G] = hyperAceR_RT_SM_I(M, S, beta)
 %   results - vector of detector output (N x 1)
 %   G - final inverse correlation matrix
 
+    if(nargin < 3)
+        beta = 10000;
+    end
+
     [p, N] = size(M);
 
 	G = beta*eye(p,p);
@@ -32,6 +36,19 @@ function [results,G] = hyperAceR_RT_SM_I(M, S, beta)
         results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
 			
     end
+    
+        
+%restream data
+%     for k = 1:(N/100)
+% 
+%         x = M(:,k);
+% 
+%         %calculate detection statistic
+%         tmp2 = S.'*G;
+%         tmp = (tmp2*S);
+%         results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
+%
+%     end
     
   
 
