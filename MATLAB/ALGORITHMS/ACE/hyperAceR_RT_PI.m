@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results,G] = hyperAceR_RTSM(M, S)
+function [results] = hyperAceR_RT_PI(M, S)
 % HYPERACE Performs the adaptive cosin/coherent estimator algorithm
 % DOES NOT EXCLUDE DETECTED PIXELS FROM UPDATED CORRELATION MATRIX
 % REAL TIME ALGORITHM IN HW
@@ -16,28 +16,23 @@ function [results,G] = hyperAceR_RTSM(M, S)
 
 	[p, N] = size(M);
 
-    %take a subset of pixels, about 10*p	
-	%num = 10*p;
-    % or take a subset of pixels, about 0.1% of pixels	
-	num = round(0.1*N/100);
-	
 	results = zeros(1, N);
-
-	R_init = M(:,1:num)*M(:,1:num)';
-	G = pinv(R_init);
 	
+    R = M(:,1)*M(:,1)';
+	G = pinv(R);
+    
 	for k = 1:N
 		
-		x = M(:,k);
-	
-        tmp2 = S.'*G;
-        tmp = (tmp2*S);
-        results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
+        x = M(:,k);
+        tmp = (S.'*G*S);
+		results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
         
-        if( k > num)
-           G = G - ((G*x)*(x'*G))./(1+x'*G*x);
+        if(k~=1)
+            R = R + x*x'; %update correlation matrix, no normalization
+            G = pinv(R);  %pseudoinverse for first few pixels, later it is same as inverse
         end
-        
+		
+			
 	end
 
 end
