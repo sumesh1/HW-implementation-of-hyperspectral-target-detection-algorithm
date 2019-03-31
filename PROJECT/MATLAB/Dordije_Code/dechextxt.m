@@ -10,8 +10,7 @@ else
     
 end 
 
-
-    garr = typecast(vect32,datatype);
+garr = typecast(vect32,datatype);
 
 a = dec2hex(garr,bytes);
 fid = fopen(name,'w');

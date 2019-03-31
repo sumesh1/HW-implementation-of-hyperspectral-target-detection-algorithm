@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results,mapexcluded] = hyperAceR_RTA(M, S, th)
+function [results,mapexcluded] = hyperAceR_RTA_PI(M, S, th)
 % HYPERACE Performs the adaptive cosin/coherent estimator algorithm
 % EXCLUDES DETECTED PIXELS FROM UPDATED CORRELATION MATRIX
 % REAL TIME ALGORITHM IN HW

@@ -22,31 +22,39 @@ target= signaturespca(11,:);
 M16=int16(M_pct); %cutting off a bit
 target16=int16(target);
 
-%i = dechextxt(M16(:),'cube.txt','uint16');
+Mwr=M16(:);
+%i = dechextxt(Mwr,'cube.txt','uint16');
 
 %i = dechextxt(target16(:),'target.txt','uint16');
 
 
-R= hyperCorr(M_pct);
+%R= hyperCorr(M_pct);
+R= hyperCorr(double(M16));
 G=inv(R);
 
 G32=int32(G*2^41);
 
-%i = dechextxt(G32(:),'matrix.txt','uint32'); %uint32 just for writing, it will write negative
+i = dechextxt(G32(:),'matrix.txt','uint32'); %uint32 just for writing, it will write negative
 
 %prepare sR^-1 vector
 
-sR = target*G;
+%sR = target*G;
+sR=double(target16)*G;
 sR32=int32(sR*2^36);
 
-%i = dechextxt(sR32,'stat.txt','uint32');
+i = dechextxt(sR32,'stat.txt','uint32');
 
-% fileID = fopen('spca.bin','w');
-% fwrite(fileID,M16,'int16');
-% fclose(fileID)
-% 
-% 
-% fileID = fopen('tpca.bin','w');
-% fwrite(fileID,target16,'int16');
-% fclose(fileID)
+%sRs= sR*target';
+sRs=sR*double(target16)';
+sRs32=int32(sRs*2^28);
+
+%FOR FPGA
+%  fileID = fopen('spca.bin','w');
+%  fwrite(fileID,M16,'int16');
+%  fclose(fileID)
+ 
+ 
+%  fileID = fopen('tpca.bin','w');
+%  fwrite(fileID,target16,'int16');
+%  fclose(fileID)
 

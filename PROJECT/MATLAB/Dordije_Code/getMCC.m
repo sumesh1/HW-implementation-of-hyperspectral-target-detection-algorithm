@@ -8,7 +8,11 @@
 % gt = ground truth matrix
 % value = chosen ground truth component
 
-function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, th, gt, value)
+function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, gt, value, thres)
+
+    if(nargin<4)
+        thres =  0.0001:0.0001:1.0000;
+    end
 
 	[m,n]=size(gt);
 	
@@ -30,8 +34,9 @@ function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, th, gt, value)
 	positives = sum(gt(:)==value);
     negatives = m*n-positives;
 
- for th =  0.0001:0.0001:1.0000
+ for i= 1:numel(thres)
     
+    th = thres(i);
     tp=0;
 	fp=0;
 	fn=0;
@@ -91,9 +96,10 @@ function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, th, gt, value)
  tpr= tpr./positives;
  fpr= fpr./negatives;
  
-plot(fpr,tpr,'Linewidth',4);
-auc=trapz(fpr,tpr);           
-            
+%plot(fpr,tpr,'Linewidth',4);
+if(numel(thres)>1)
+    auc=trapz(fpr,tpr);           
+end           
 % MCC score function
 	%mcc_func = @(tp,tn,fp,fn) (tp*tn-fp*fn)/(sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))) ;
 

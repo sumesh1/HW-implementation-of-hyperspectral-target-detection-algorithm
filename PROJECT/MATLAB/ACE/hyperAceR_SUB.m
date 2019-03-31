@@ -1,7 +1,8 @@
 % created by: Dordije Boskovic
 
-function [results] = hyperAceR_SUB(M, S)
-% HYPERACER Performs the adaptive cosin/coherent estimator algorithm with correlation MATRIX!
+function [results] = hyperAceR_SUB(M, S, percent)
+% HYPERACER Performs the adaptive cosine/coherent estimator algorithm 
+% with correlation matrix using subset of rows/columns
 
 % Usage
 %   [results] = hyperAce(M, S)
@@ -11,14 +12,16 @@ function [results] = hyperAceR_SUB(M, S)
 % Outputs
 %   results - vector of detector output (N x 1)
 
+if (nargin < 3)
+   percent = 1;
+end
+
 	[p, N] = size(M);
-	percent = 1;
-	
+
 	divisor = floor(percent*N/100);
 	jump = floor(100/percent);
 	
-	
-	R = (M(:,1:jump:end)*M(:,1:jump:end)')/divisor;
+	R = (M(:,1:jump:end)*M(:,1:jump:end)')./divisor;
     G=inv(R);
 
 	results = zeros(1, N);

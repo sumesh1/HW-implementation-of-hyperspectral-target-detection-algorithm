@@ -30,11 +30,12 @@ function [results] = hyperAce(M, S)
 	G = inv(R_hat);
 
 	results = zeros(1, N);
+    tmp2 = (S.'*G);
 	tmp = (S.'*G*S);
 	
 	for k=1:N
 		x = M(:,k);
-		results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
+		results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
 	end
 
 end

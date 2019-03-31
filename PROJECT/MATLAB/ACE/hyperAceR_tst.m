@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results] = hyperAceR_tst(M,G, S)
+function [results] = hyperAceR_tst(M, G, S)
 % HYPERACER Performs the adaptive cosin/coherent estimator algorithm with correlation MATRIX!
 
 % Usage
@@ -15,12 +15,13 @@ function [results] = hyperAceR_tst(M,G, S)
 
 	results = zeros(1, N);
 	
+    tmp2 = (S.'*G);
 	tmp = (S.'*G*S);
 	
 	for k=1:N
 		
 		x = M(:,k);
-		results(k) = (S.'*G*x)^2 / (tmp*(x.'*G*x));
+		results(k) = (tmp2*x)^2 / (tmp*(x.'*G*x));
 		
 	end
 
