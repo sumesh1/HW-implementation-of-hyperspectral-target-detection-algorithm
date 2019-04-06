@@ -2,7 +2,7 @@ clc;
 
 %% initial 
 name = 'self_test_refl';
-name = 'F1';
+%name = 'F3_f';
 img_or_spl = 1;
 
 %% loading

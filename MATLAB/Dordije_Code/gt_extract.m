@@ -1,4 +1,4 @@
-A = gt';
+A = gt2;
 cmap = [1 1 1; 0 0 0; 0 0 1; 0 1 0; 0 1 1; 1 0 0; 1 0 1; 1 1 0; 0.5 0.5 0.5; 
     0 0 0.5; 0 0.5 0 ; 0 0.5 0.5; 0.5 0 0; 0.5 0 0.5; 0.5 0.5 0; 0.4 0.2 0.82; 0.1 0.5 0.7];
 
@@ -6,6 +6,7 @@ cmap = [1 1 1; 0 0 0; 0 0 1; 0 1 0; 0 1 1; 1 0 0; 1 0 1; 1 1 0; 0.5 0.5 0.5;
 figure(1)
 imagesc(A);
 colormap(cmap);
+daspect([1 1 1])
 
 minA = min(min(A));
 maxA = max(max(A));
@@ -24,7 +25,7 @@ hold off
 display('here')
 uistack(hidden_h, 'bottom');
 
-legend(hidden_h, legends(1:maxA+1),'interpreter','none','location','bestoutside' )
+legend(hidden_h, legends(1:maxA+1),'interpreter','none','location','best' )
 
 %for hopavaagen
 %legend(hidden_h, legends(1:maxA),'interpreter','none','location','bestoutside' )

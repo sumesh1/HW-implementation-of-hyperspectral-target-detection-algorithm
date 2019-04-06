@@ -4,7 +4,7 @@ function normA = normalize(A)
 normA = A;
 
 dims = size(A);
-dim3=1;
+dim3 = 1;
 
 if length(dims) > 2
     dim3 = dims(3);

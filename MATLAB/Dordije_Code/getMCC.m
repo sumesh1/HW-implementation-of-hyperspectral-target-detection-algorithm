@@ -11,7 +11,8 @@
 function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, gt, value, thres)
 
     if(nargin<4)
-        thres =  0.0001:0.0001:1.0000;
+        %thres =  0.0001:0.0001:1.0000;
+        thres = linspace(min(ds_vector)-min(ds_vector)/10,max(ds_vector)+max(ds_vector)/10,10000);
     end
 
 	[m,n]=size(gt);
@@ -93,12 +94,21 @@ function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, gt, value, thres)
             
             vis = norm(T_t_avg - T_b_avg)/(T_max - T_min);
  
+            
+            %toc
+ if(numel(thres)>1)
+  plot(fpr+tpr,tpr,'Linewidth',4);
+     auc=trapz(fpr+tpr,tpr);           
+ end           
+            
+            
  tpr= tpr./positives;
  fpr= fpr./negatives;
  
-%plot(fpr,tpr,'Linewidth',4);
+
 if(numel(thres)>1)
-    auc=trapz(fpr,tpr);           
+   % semilogx(fpr,tpr,'Linewidth',4);
+   % auc=trapz(fpr,tpr);           
 end           
 % MCC score function
 	%mcc_func = @(tp,tn,fp,fn) (tp*tn-fp*fn)/(sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))) ;
