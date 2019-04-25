@@ -1,6 +1,6 @@
 % created by: Dordije Boskovic
 
-function [results,overflows] = hyperAceR_FP(M,S,pixbw,brambw,outbw,sliders)
+function [results,overflows] = hyperASMF_FP(M,S,pixbw,brambw,outbw)
 %% Description:
 % HYPERACER Performs the adaptive cosin/coherent estimator algorithm with correlation MATRIX!
 % THIS FUNCTION IS USED FOR FIXED POINT ERROR ESTIMATION
@@ -13,46 +13,14 @@ function [results,overflows] = hyperAceR_FP(M,S,pixbw,brambw,outbw,sliders)
 %  pixbw, brambw, outbw - bit widths for fixed point implementation
 
 %% function
-[p, N] = size(M);
-add_frac = ceil(log2(p));
 
-if (nargin < 5)
+if (nargin < 3)
     pixbw  = 16;
     brambw = 32;
     outbw  = 32;
-%     s1 = pixbw + add_frac + brambw - outbw -1;
-%     s2 = pixbw + add_frac + outbw - outbw -1;
-%     s3 = pixbw + add_frac + brambw - outbw -1;
-%     s4 = outbw-1;
-%     s5 = outbw-1;
-    s1 = pixbw  + brambw - outbw -1;
-    s2 = pixbw  + outbw - outbw -1;
-    s3 = pixbw  + brambw - outbw -1;
-    s4 = outbw-1;
-    s5 = outbw-1;
-
-elseif (nargin  == 5)
-%     s1 = pixbw + add_frac + brambw - outbw -1;
-%     s2 = pixbw + add_frac + outbw - outbw -1;
-%     s3 = pixbw + add_frac + brambw - outbw -1;
-%     s4 = outbw-1;
-%     s5 = outbw-1;
-    s1 = pixbw  + brambw - outbw -1;
-    s2 = pixbw  + outbw - outbw -1;
-    s3 = pixbw  + brambw - outbw -1;
-    s4 = outbw - 1;
-    s5 = brambw - 1;
-elseif (nargin ==6)
-    s1 = sliders(1);
-    s2 = sliders(2);
-    s3 = sliders(3);
-    s4 = sliders(4);
-    s5 = sliders(5);
 end
 
-
-
-
+[p, N] = size(M);
 
 if (pixbw == 16)
     M = int16(M);
@@ -63,7 +31,7 @@ elseif(pixbw == 32)
 end
 
 %accumulator added bit width
-
+add_frac = ceil(log2(p));
 
 %correlation matrix
 R = hyperCorr(M);
@@ -143,9 +111,8 @@ for k = 1:N
     %truncation of t1 can be adjusted according to the scene
     %by default it is 2^(pixbw+add_frac-1).
     %it has most impact on the result
-    
-    %t1 = floor(t1./2^(pixbw +add_frac -1));   
-    t1 = floor(t1./2^(s1));   
+   % t1 = floor(t1./2^(pixbw+add_frac -1));   
+    t1 = floor(t1./2^(pixbw -1));   
     if (any(t1(:) > 2^(outbw-1) - 1))
         t1(t1>2^(outbw-1)-1) = 2^(outbw-1)-1;
         cnt1 = cnt1 + 1;
@@ -154,9 +121,9 @@ for k = 1:N
         cnt1 = cnt1 + 1;
     end
     
-    t2 = t1 * x;
+    t2 = abs( t1 * x);
    % t2 = floor(t2./2^(pixbw+add_frac-1));
-    t2 = floor(t2./2^(s2));
+     t2 = floor(t2./2^(pixbw-1));
     if (t2 > 2^(outbw-1) - 1)
         t2 = 2^(outbw-1) - 1;
         cnt2 = cnt2 + 1;
@@ -167,8 +134,8 @@ for k = 1:N
     
     
     sGx = sGfp * x;
-    %sGx = floor(sGx./2^(pixbw+add_frac-1));
-    sGx = floor(sGx./2^(s3));
+   % sGx = floor(sGx./2^(pixbw+add_frac-1));
+   sGx = floor(sGx./2^(pixbw-1));
     if (sGx > 2^(outbw-1) - 1)
         sGx = 2^(outbw-1) - 1;
         cnt3 = cnt3 + 1;
@@ -178,8 +145,8 @@ for k = 1:N
     end
     
     
-    sGx2 = sGx * sGx;
-    sGx2 = floor(sGx2./2^(s4));
+    sGx2 = sGx * abs(sGx);
+    sGx2 = floor(sGx2./2^(outbw-1));
     if (sGx2 > 2^(outbw-1) - 1)
         sGx2 = 2^(outbw-1) - 1;
         cnt4 = cnt4 + 1;
@@ -190,7 +157,7 @@ for k = 1:N
     
     
     d2 = sGsfp * t2;
-    d2 = floor(d2./2^(s5));
+    d2 = floor(d2./2^(outbw-1));
     if (d2 > 2^(outbw-1) - 1)
         d2 = 2^(outbw-1) - 1;
         cnt5 = cnt5 + 1;
@@ -208,14 +175,7 @@ for k = 1:N
 %     results(k) = double(sGx2*c);
 
 %% not integer division, fast
-if(d2==0)
-    %d2=0.01;
-end
     results(k) = sGx2/d2;
-    
-    if(isinf(results(k))| isnan(results(k)))
-       % disp('err inf');
-    end
     
 end
 

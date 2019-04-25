@@ -37,15 +37,28 @@ end
 R = hyperCorr(M);
 G = inv(R);
 
-t1 = G*target;
-t2 = target'*t1;
+% t1 = G*target;
+% t2 = target'*t1;
+% 
+% results = zeros(1,N);
+% 
+% 	for k = 1:N
+% 		
+% 		x = M(:,k);
+%         t3 = x'*t1;
+% 		results(k) = (t3/t2) * (abs(t3/(x'*G*x)))^n ;
+% 		
+% 	end
+% 
+t1 = target'*G;
+t2 = target'*G*target;
 
 results = zeros(1,N);
 
 	for k = 1:N
 		
 		x = M(:,k);
-        t3 = x'*t1;
+        t3 = t1*x;
 		results(k) = (t3/t2) * (abs(t3/(x'*G*x)))^n ;
 		
 	end
