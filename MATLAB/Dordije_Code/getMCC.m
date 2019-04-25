@@ -97,13 +97,39 @@ function [mcc,vis,auc,tpr,fpr] = getMCC (ds_vector, gt, value, thres)
             
             %toc
  if(numel(thres)>1)
-  plot(fpr+tpr,tpr,'Linewidth',4);
-     auc=trapz(fpr+tpr,tpr);           
+  figure;
+  plot(fpr+tpr,tpr,'Linewidth',2);
+   hold on
+       k1 = 0:1:m*n-1;
+    k2 = zeros(1,m*n);
+    k2(end-positives+1:end) = 1:positives;
+    k3 = ones(1,m*n);
+    k3 = k3*positives;
+    k3(1:positives+1) = 0:positives;
+
+  plot(k1,k2,'--', 'Linewidth', 2);
+  plot(k1,k3,'--',  'Linewidth', 2);
+
+    set(gca, 'FontSize', 12);            
+    set(gca, 'fontweight','bold');
+   set(gca, 'XScale', 'log');
+
+    xlim([0 1.02*m*n])
+    ylim([0 1.02*positives])
+%   %  legend(legend_entry, 'location','northeastoutside');
+figure;
+ tpr= tpr./positives;
+ fpr= fpr./negatives;
+% % %  figure 
+  plot(fpr,tpr,'-','Linewidth', 2);
+  %hold on
+ % plot(fpr(1:100:end),tpr(1:100:end),'*r');
+         auc=trapz(fpr,tpr); 
  end           
             
             
- tpr= tpr./positives;
- fpr= fpr./negatives;
+% tpr= tpr./positives;
+ %fpr= fpr./negatives;
  
 
 if(numel(thres)>1)
