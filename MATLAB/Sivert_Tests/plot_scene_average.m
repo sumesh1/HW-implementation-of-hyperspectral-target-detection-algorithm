@@ -6,14 +6,14 @@ warning('off');
 types = ["FULL"];
 info_mcc = struct;
 info_vis = struct;
-info_pfa = struct;
-info_dr  = struct;
+info_tp = struct;
+info_fp  = struct;
 
 
 for t = 1: length(types)
     type = types(t);
     
-    full = load('newest.mat');
+    full = load('results_full.mat');
     %data = load(sprintf('Results/results_%s.mat', type));
     
     Full_struct = fieldnames(full);
@@ -46,12 +46,12 @@ for t = 1: length(types)
                  %   [0 DR_struct.(scenes(s)).(en).(an).('visibility')];
                 info_vis.(type).(scenes(s)).(an)(id,1) = ...
                     Full_struct.(scenes(s)).(en).(an).('visibility');
-                
-%               info_pfa.(type).(scenes(s)).(an)(id,1) = ...
-%                 Full_struct.(scenes(s)).(en).(an).('pfa');
+%                 
+%               info_tp.(type).(scenes(s)).(an)(id,1) = ...
+%                 Full_struct.(scenes(s)).(en).(an).('tp');
 % 
-%               info_dr.(type).(scenes(s)).(an)(id,1) = ...
-%                 Full_struct.(scenes(s)).(en).(an).('dr');
+%               info_fp.(type).(scenes(s)).(an)(id,1) = ...
+%                 Full_struct.(scenes(s)).(en).(an).('fp');
             end
         end
     end
@@ -67,8 +67,8 @@ for t = 1:length(f_names)
     info_mcc_t = info_mcc.(f_names{t});
     info_vis_t = info_vis.(f_names{t});
     
- 	FigH = figure('Name', f_names{t}, 'Renderer', 'painters',...
-    'position', [10, 10, 2000,1200]);
+ 	%FigH = figure('Name', f_names{t}, 'Renderer', 'painters',...
+   % 'position', [10, 10, 2000,1200]);
         
     f_t_names = fieldnames(info_mcc_t);
     
@@ -83,7 +83,7 @@ for t = 1:length(f_names)
        
 
         an = replace(td_algs,'hyper','');
-        legend_entry = upper(["MCC","VIS"]);
+        legend_entry = upper(["MCC","Max MCC","VIS","Max VIS"]);
 
         p_mcc = zeros(1,length(an));
         p_vis = zeros(1,length(an));
@@ -93,11 +93,11 @@ for t = 1:length(f_names)
             
             switch s
                 case 1
-                    p_mcc(a) = mean(i_mcc([11,12])); 
-                    p_vis(a) = mean(i_vis([11,12])); 
+                    p_mcc(a) = mean(i_mcc); 
+                    p_vis(a) = mean(i_vis); 
                 case 2
-                    p_mcc(a) = mean(i_mcc([2,5])); 
-                    p_vis(a) = mean(i_vis([2,5])); 
+                    p_mcc(a) = mean(i_mcc); 
+                    p_vis(a) = mean(i_vis); 
                 case 3
                     p_mcc(a) = mean(i_mcc); 
                     p_vis(a) = mean(i_vis); 
@@ -105,6 +105,9 @@ for t = 1:length(f_names)
                     p_mcc(a) = mean(i_mcc); 
                     p_vis(a) = mean(i_vis); 
                 case 5
+                    p_mcc(a) = mean(i_mcc); 
+                    p_vis(a) = mean(i_vis);
+                case 6
                     p_mcc(a) = mean(i_mcc); 
                     p_vis(a) = mean(i_vis); 
                 otherwise
@@ -164,34 +167,40 @@ for t = 1:length(f_names)
       
 
         %combined plot
+        figure('name', scene_name,'position',[100, 100, 1000,600])
         [PeakMCC, PeakIdxMCC] = max(p_mcc);
         [PeakVIS, PeakIdxVIS] = max(p_vis);
         x =1:1:(length(an));
-        subplot(length(scenes),1, s);
+        %subplot(length(scenes),1, s);
         hold on;
-        title(f_names{t} +" - "+ scene_name +" -MCC VIS");
+        title(f_names{t} +" - "+ scene_name +" - MCC VIS");
         yyaxis left
-        plot(p_mcc,'LineWidth',2);
+        plot(p_mcc,'LineWidth',1.5);
         plot(x(PeakIdxMCC),PeakMCC,'^','MarkerSize',10);
+        %ylim([min(p_mcc) PeakMCC+0.1]);
+        ylim([0 1]);
         yyaxis right
-        plot(p_vis,'LineWidth',2);
+        plot(p_vis,'LineWidth',1.5);
         plot(x(PeakIdxVIS),PeakVIS,'o','MarkerSize',10);
+        %ylim([min(p_vis) PeakVIS+0.1]);
+        ylim([0 1]);
         hold off;
         grid on;
-       % legend(legend_entry(2), 'location', 'best');
+        legend(legend_entry, 'location', 'northeastoutside');
         xticks(1:1:(length(an)));
         xticklabels(xlabels);
         xlabel("Algorithm");
         %ylim([0 1]);
         
-        set(gca, 'FontSize', 13);            
+        set(gca, 'FontSize', 12);            
         set(gca, 'fontweight','bold');
 
+        print(gcf,join([scene_name,'_scenes.png']),'-dpng','-r300');
 
         k = k+1;
             
     end
     
-    F    = getframe(FigH);
-    imwrite(F.cdata,join([f_names{t},'_scenes.png']), 'png')
+  %  F    = getframe(FigH);
+   % imwrite(F.cdata,join([f_names{t},'_scenes.png']), 'png')
 end

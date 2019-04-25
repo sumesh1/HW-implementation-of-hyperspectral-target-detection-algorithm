@@ -17,22 +17,23 @@ for s = 1:length(scenes)
         gt=scene.gt_fullsub;    
     end
     
-    % Do pca
+    %  PCA ON OFF
     [h,w,d] = size(M);
     M_2d = hyperConvert2d(M);
     M_2d = M_2d';
     
-    %M_2d_subset = datasample(M_2d,floor(h*w*training_portion));
-    %[coeff,~,~,~,explained,~] = pca(M_2d_subset);
-    
+    if(PCA) 
+       [coeff,~,~,~,explained,~] = pca(M_2d);
+    end
+       
     for a = 1:length(td_algs)
         td_alg = td_algs(a);
         
         current_step = current_step +1;
-            disp(sprintf("Current progress %.2f %%",...
+        disp(sprintf("Current progress %.2f %%",...
                 current_step/max_step*100));
         
-        for id = 1:1
+        for id = 1:size(scene.signatures,1)
             end_name	= scene.endmembers(id);
             end_sign	= scene.signatures(id,:);
             end_index	= id;
@@ -67,6 +68,15 @@ for s = 1:length(scenes)
             end 
             
             T = T';
+            
+            if(PCA)
+                q = Qs(r_id);
+                V = coeff(:,1:q);
+                M_pct = transpose(M_2d*V);
+                T = transpose(M_2d*V);
+                M_new = hyperConvert3d(M_pct,h,w,q);
+                end_sign_new = end_sign*V;
+            end
             
             % Calculate score
             if td_alg == "hyperOsp"
@@ -157,8 +167,8 @@ for s = 1:length(scenes)
             results_Full.(scenes(s)).(en).(an).('pfa')(r_id) = p_f_a;
             results_Full.(scenes(s)).(en).(an).('minfa')(r_id) = min_fa;
             results_Full.(scenes(s)).(en).(an).('dr')(r_id) = p_c_a;
-            results_Full.(scenes(s)).(en).(an).('tpr') = met(:,2)'./abundance;
-            results_Full.(scenes(s)).(en).(an).('fpr') = met(:,3)'./(xx*yy-abundance);
+            results_Full.(scenes(s)).(en).(an).('tp') = met(:,2);
+            results_Full.(scenes(s)).(en).(an).('fp') = met(:,3);
             results_Full.(scenes(s)).(en).(an).('score')(r_id) = max_score;
             results_Full.(scenes(s)).(en).(an).('visibility')(r_id) = vis;
             
