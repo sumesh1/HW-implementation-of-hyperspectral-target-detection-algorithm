@@ -12,8 +12,8 @@
 -- 
 -- Dependencies: 
 -- 
--- Revision:
--- Revision 0.01 - File Created
+-- Revision: 10.04.2019.
+-- Revision 
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ use work.my_types_pkg.all;
 -- ROW_SELECT             : Select row/column
 -- STATIC_VECTOR_SR       : Element of s'R^1 vector
 -- STATIC_SRS			  : SRS static from PS
+-- ALGORITHM_SELECT 	  : select algorithm ACER, ASMF, ASMF2 
 -------------------------------------------------------------------------------
 
 
@@ -55,6 +56,8 @@ entity TopLevel_Accelerator is
 		ST2IN_DATA_WIDTH   : positive := 32;
 		ST3IN_DATA_WIDTH   : positive := 32;
 		ST2IN_DATA_SLIDER  : positive := 32;
+		ST2_ASMF2_DATA_SLIDER 	: positive := 72;
+		ST2_ASMF2SR_DATA_SLIDER	: positive := 46;
 		ST3IN_DATA1_SLIDER : positive := 32;
 		ST3IN_DATA2_SLIDER : positive := 32;
 		NUM_BANDS          : positive := 16;
@@ -84,7 +87,8 @@ entity TopLevel_Accelerator is
 		MATRIX_ROW       : in std_logic_vector (BRAM_ROW_WIDTH - 1 downto 0);
 		ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 		STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
-		STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		ALGORITHM_SELECT : in std_logic_vector(1 downto 0)
 	);
 end TopLevel_Accelerator;
 
@@ -93,8 +97,6 @@ architecture Behavioral of TopLevel_Accelerator is
 	constant ST1OUT_DATA_WIDTH  : integer := integer(ceil(real(BRAM_DATA_WIDTH + PIXEL_DATA_WIDTH) + log2(real(NUM_BANDS))));
 	constant ST2OUT_DATA_WIDTH  : integer := integer(ceil(real(ST2IN_DATA_WIDTH + PIXEL_DATA_WIDTH) + log2(real(NUM_BANDS))));
 	constant ST3OUT_DATA1_WIDTH : integer := integer(ceil(real(ST3IN_DATA_WIDTH + BRAM_DATA_WIDTH)));
-	--constant BRAM_ADDR_WIDTH: integer := integer(ceil(log2(real(NUM_BANDS))));
-	--constant BRAM_ROW_WIDTH: positive :=BRAM_DATA_WIDTH*(2**BRAM_ADDR_WIDTH);
 
 	component Accelerator is
 		generic (
@@ -103,6 +105,8 @@ architecture Behavioral of TopLevel_Accelerator is
 			ST1OUT_DATA_WIDTH  : positive := 48;
 			ST2IN_DATA_SLIDER  : positive := 32;
 			ST2IN_DATA_WIDTH   : positive := 32;
+			ST2_ASMF2_DATA_SLIDER 	: positive := 72;
+			ST2_ASMF2SR_DATA_SLIDER	: positive := 46;
 			ST2OUT_DATA_WIDTH  : positive := 48;
 			ST3IN_DATA1_SLIDER : positive := 32;
 			ST3IN_DATA2_SLIDER : positive := 32;
@@ -125,11 +129,11 @@ architecture Behavioral of TopLevel_Accelerator is
 			DATA1_OUT        : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 			DATA2_OUT        : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
 			STOP_PIPELINE    : in std_logic;
-			--MATRIX_COLUMN    : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
 			MATRIX_COLUMN    : in data_array_bram;
 			ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 			STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
-			STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+			STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+			ALGORITHM_SELECT : in std_logic_vector(1 downto 0)
 		);
 	end component;
 
@@ -161,7 +165,6 @@ architecture Behavioral of TopLevel_Accelerator is
 	signal STOP1_PIPELINE : std_logic;
 	signal STOP2_PIPELINE : std_logic;
 	signal STOP_PIPELINE  : std_logic;
---	signal MATRIX_COLUMN  : data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
 	signal MATRIX_COLUMN  : data_array_bram;
 
 begin
@@ -173,6 +176,8 @@ begin
 		ST1OUT_DATA_WIDTH  => ST1OUT_DATA_WIDTH,
 		ST2IN_DATA_SLIDER  => ST2IN_DATA_SLIDER,
 		ST2IN_DATA_WIDTH   => ST2IN_DATA_WIDTH,
+		ST2_ASMF2_DATA_SLIDER 	=> ST2_ASMF2_DATA_SLIDER ,
+		ST2_ASMF2SR_DATA_SLIDER => ST2_ASMF2SR_DATA_SLIDER,
 		ST2OUT_DATA_WIDTH  => ST2OUT_DATA_WIDTH,
 		ST3IN_DATA1_SLIDER => ST3IN_DATA1_SLIDER,
 		ST3IN_DATA2_SLIDER => ST3IN_DATA2_SLIDER,
@@ -198,7 +203,8 @@ begin
 		MATRIX_COLUMN    => MATRIX_COLUMN,
 		ROW_SELECT       => ROW_SELECT,
 		STATIC_VECTOR_SR => STATIC_VECTOR_SR,
-		STATIC_SRS 		 => STATIC_SRS
+		STATIC_SRS 		 => STATIC_SRS,
+		ALGORITHM_SELECT => ALGORITHM_SELECT
 	);
 
 	MasterOutput1_Inst : MasterOutput

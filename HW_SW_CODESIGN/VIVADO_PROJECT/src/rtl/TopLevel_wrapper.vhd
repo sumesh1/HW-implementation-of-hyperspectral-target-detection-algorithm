@@ -32,6 +32,8 @@ entity TopLevel_wrapper is
 		ST2IN_DATA_WIDTH   : positive := 32;
 		ST3IN_DATA_WIDTH   : positive := 32;
 		ST2IN_DATA_SLIDER  : positive := 50;
+		ST2_ASMF2_DATA_SLIDER 	: positive := 72;
+		ST2_ASMF2SR_DATA_SLIDER	: positive := 46;
 		ST3IN_DATA1_SLIDER : positive := 50;
 		ST3IN_DATA2_SLIDER : positive := 62;
 		NUM_BANDS          : positive := 16;
@@ -61,7 +63,8 @@ entity TopLevel_wrapper is
 		MATRIX_ROW       : in std_logic_vector (BRAM_ROW_WIDTH - 1 downto 0);
 		ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 		STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
-		STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		ALGORITHM_SELECT : in std_logic_vector(1 downto 0)
 	);
 end TopLevel_wrapper;
 
@@ -75,6 +78,8 @@ architecture Behavioral of TopLevel_wrapper is
 			ST2IN_DATA_WIDTH   : positive := 32;
 			ST3IN_DATA_WIDTH   : positive := 32;
 			ST2IN_DATA_SLIDER  : positive := 32;
+			ST2_ASMF2_DATA_SLIDER 	: positive := 72;
+			ST2_ASMF2SR_DATA_SLIDER	: positive := 46;
 			ST3IN_DATA1_SLIDER : positive := 32;
 			ST3IN_DATA2_SLIDER : positive := 32;
 			NUM_BANDS          : positive := 16;
@@ -104,7 +109,8 @@ architecture Behavioral of TopLevel_wrapper is
 			MATRIX_ROW       : in std_logic_vector (BRAM_ROW_WIDTH - 1 downto 0);
 			ROW_SELECT       : out std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 			STATIC_VECTOR_SR : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
-			STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+			STATIC_SRS		 : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+			ALGORITHM_SELECT : in std_logic_vector(1 downto 0)
 		);
 	end component;
 	
@@ -117,6 +123,8 @@ begin
 		ST2IN_DATA_WIDTH    => ST2IN_DATA_WIDTH  ,
 		ST3IN_DATA_WIDTH    => ST3IN_DATA_WIDTH  ,
 		ST2IN_DATA_SLIDER   => ST2IN_DATA_SLIDER ,
+		ST2_ASMF2_DATA_SLIDER 	=> ST2_ASMF2_DATA_SLIDER ,
+		ST2_ASMF2SR_DATA_SLIDER => ST2_ASMF2SR_DATA_SLIDER,
 		ST3IN_DATA1_SLIDER  => ST3IN_DATA1_SLIDER,
 		ST3IN_DATA2_SLIDER  => ST3IN_DATA2_SLIDER,
 		NUM_BANDS           => NUM_BANDS         ,
@@ -146,7 +154,8 @@ begin
 		MATRIX_ROW       => MATRIX_ROW,
 		ROW_SELECT       => ROW_SELECT,
 		STATIC_VECTOR_SR => STATIC_VECTOR_SR,
-		STATIC_SRS 		 => STATIC_SRS
+		STATIC_SRS 		 => STATIC_SRS,
+		ALGORITHM_SELECT => ALGORITHM_SELECT
 	);
 
 end Behavioral;

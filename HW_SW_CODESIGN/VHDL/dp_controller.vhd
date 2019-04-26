@@ -9,6 +9,7 @@
 -- Target Devices: 
 -- Tool Versions: 
 -- Description: 
+-- DOT PRODUCT CONTROLLER FOR PIPELINED DATAPATH
 -- 
 -- Dependencies: 
 -- 
@@ -46,7 +47,7 @@ begin
 	ripple  <= out_rdy;
 	p_rdy   <= out_rdy;
 
-	process (clk, reset_n)
+	process (clk)
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then

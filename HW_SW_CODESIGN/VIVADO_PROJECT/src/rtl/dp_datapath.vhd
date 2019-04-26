@@ -48,9 +48,9 @@ architecture Behavioral of dp_datapath is
 	
 begin
 
-	p <= add_r;--std_logic_vector ( resize ( signed ( add_r ),p' length ));
+	p <= add_r;
 
-	process (clk, reset_n)
+	process (clk)
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then
@@ -75,7 +75,7 @@ begin
 				
 				else
 					-- Acculumate result
-					add_r <= std_logic_vector (signed (mul_r) + signed (add_r));--std_logic_vector ( resize ( signed ( mul_r )+ signed ( add_r ),add_r ' length ));
+					add_r <= std_logic_vector (signed (mul_r) + signed (add_r));
 				
 				end if;
 				

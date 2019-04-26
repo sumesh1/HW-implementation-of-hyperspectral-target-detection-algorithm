@@ -12,8 +12,8 @@
 -- 
 -- Dependencies: 
 -- 
--- Revision:
--- Revision 0.01 - File Created
+-- Revision: 10.04.2019.
+-- Revision 
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
@@ -73,8 +73,13 @@ architecture Behavioral of Accelerator_Stage3 is
 	
 begin
 
---Stage3_DataOut1 <= Stage3_DataSRS_XRX(ST3IN_DATA_WIDTH + BRAM_DATA_WIDTH - 2 downto ST3IN_DATA_WIDTH + BRAM_DATA_WIDTH - ST3OUT_DATA_WIDTH -1);
-	Stage3_DataOut1 <= Stage3_DataSRS_XRX;
+
+------------------------------------------------------------------------------
+	--OUTPUT SELECT
+------------------------------------------------------------------------------	
+	
+Stage3_DataOut1 <= Stage3_DataSRS_XRX;
+
 ------------------------------------------------------------------------------
 	--GENERATE STAGE 3 s'Rs * x'Rx MULTIPLIER 
 ------------------------------------------------------------------------------		 
@@ -117,10 +122,10 @@ begin
 				if (Stage3_Enable = '1') then
 					Stage3_DataOut2  <= Stage3_DataIn2;
 				end if;
-				
+					
 					Stage3_DataValid_dly <= Stage3_Enable;
 					Stage3_DataValid 	 <= Stage3_DataValid_dly;
-					
+
 			end if;
 		end if;
 	end process;

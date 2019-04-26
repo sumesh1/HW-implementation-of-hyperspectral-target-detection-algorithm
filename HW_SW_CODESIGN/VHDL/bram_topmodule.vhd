@@ -12,7 +12,7 @@
 -- 
 -- Dependencies: 
 -- 
--- Revision:
+-- Revision: 10.04.2019.
 -- Revision 0.01 - File Created
 -- Additional Comments:
 -- 
@@ -101,7 +101,9 @@ entity AXI_BRAM is
 		--STATIC VECTOR OUT
 		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
 		--STATIC NUMBER sR^-1s
-		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		--ALGORITHM CHOICE
+		ALGORITHM_SELECT : out std_logic_vector(1 downto 0)
 	);
 end AXI_BRAM;
 
@@ -530,6 +532,7 @@ begin
 				DEBUG	   <= '0';
 				matrix_count := 0;
 				vector_count := 0;
+				ALGORITHM_SELECT <= (others => '0');
 				
 			else
 
@@ -601,7 +604,9 @@ begin
 				--ENABLE OR DISABLE DEBUG MODE
 				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"11") then
 
-					DEBUG    <= slv_reg3(0);
+					DEBUG    		 <= slv_reg3(2);
+					ALGORITHM_SELECT <= slv_reg3(1 downto 0);
+
 
 				end if;
 

@@ -12,8 +12,8 @@
 -- 
 -- Dependencies: 
 -- 
--- Revision:
--- Revision 0.01 - File Created
+-- Revision: 10.04.2019.
+-- Revision 
 -- Additional Comments:
 --  
 ----------------------------------------------------------------------------------
@@ -52,13 +52,10 @@ entity Accelerator_Stage1 is
 		Stage1_Enable      : in std_logic;
 		Stage1_DataIn      : in std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
 		Stage1_DataValid   : out std_logic;
-		--Stage1_DataOut     : out data_array (0 to NUM_BANDS - 1)(ST1OUT_DATA_WIDTH - 1 downto 0);
 		Stage1_DataOut     : out data_array_st1;
 		Stage1_DataSROut   : out std_logic_vector (ST1OUT_DATA_WIDTH - 1 downto 0);
-		--CORR_MATRIX_COLUMN : in data_array (0 to NUM_BANDS - 1)(BRAM_DATA_WIDTH - 1 downto 0);
 		CORR_MATRIX_COLUMN : in data_array_bram;
 		STATIC_VECTOR_SR   : in std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
-
 	);
 
 end Accelerator_Stage1;

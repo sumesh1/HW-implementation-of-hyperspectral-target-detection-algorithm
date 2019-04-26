@@ -12,7 +12,7 @@
 -- 
 -- Dependencies: 
 -- 
--- Revision:
+-- Revision: 10.04.2019.
 -- Revision 0.01 - File Created
 -- Additional Comments:
 -- 
@@ -66,7 +66,8 @@ entity BRAM_WRAPPER is
 		MATRIX_ROW       : out std_logic_vector(BRAM_DATA_WIDTH * NUM_BANDS - 1 downto 0);
 		ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
-		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+		STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+		ALGORITHM_SELECT : out std_logic_vector(1 downto 0)
 	);
 end BRAM_WRAPPER;
 
@@ -108,7 +109,8 @@ architecture arch_imp of BRAM_WRAPPER is
 			MATRIX_ROW       : out std_logic_vector(BRAM_DATA_WIDTH * NUM_BANDS - 1 downto 0);
 			ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
 			STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
-			STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
+			STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0);
+			ALGORITHM_SELECT : out std_logic_vector(1 downto 0)
 		);
 	end component AXI_BRAM;
 
@@ -148,7 +150,8 @@ begin
 		MATRIX_ROW       => MATRIX_ROW,
 		ROW_SELECT       => ROW_SELECT,
 		STATIC_VECTOR_SR => STATIC_VECTOR_SR,
-		STATIC_SRS       => STATIC_SRS
+		STATIC_SRS       => STATIC_SRS,
+		ALGORITHM_SELECT => ALGORITHM_SELECT
 	);
 
 	-- Add user logic here

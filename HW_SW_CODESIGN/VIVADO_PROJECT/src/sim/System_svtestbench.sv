@@ -118,7 +118,7 @@ begin
     master_agent.start_master();
     #2000ns;
 	
-	//no debug
+	//ACE-R selected, no debug
 	master_agent.AXI4LITE_WRITE_BURST(addr4,prot,0,resp);
 	
 	//uploading initial matrix

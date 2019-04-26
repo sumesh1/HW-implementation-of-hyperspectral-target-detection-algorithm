@@ -100,7 +100,8 @@ begin
 	process (CLK)
 	begin
 		if(rising_edge(CLK)) then
-			STOP_SIM <= M_AXIS_TLAST;	
+			--STOP_SIM <= M_AXIS_TLAST;	
+			STOP_SIM <='0';	
 		end if;
 		
 	end process;
@@ -177,14 +178,22 @@ begin
 	begin
 		--count <= 0;
 		S_AXIS_TLAST <= '0';
+		S_AXIS_TVALID <= '0';
 		file_open(file_VECTORS, "cube.txt", read_mode);
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
 		S_AXIS_TDATA <= (others => '0');
 		wait until CLK = '1' and CLK'event;
 
+		wait until START = '1';
+			readline(file_VECTORS, v_ILINE);
+			hread(v_ILINE, v_data);	
+			S_AXIS_TVALID <= '1';
+			S_AXIS_TDATA <= v_data;
 
 		wait until (S_AXIS_TREADY = '1' and S_AXIS_TVALID = '1');
+		wait until CLK = '1' and CLK'event;
+
 			while not endfile(file_VECTORS) loop
 			
 				readline(file_VECTORS, v_ILINE);
@@ -210,8 +219,9 @@ begin
 				end if;
 				
 				--count <= count + 1;
-				
-				wait until CLK = '1' and CLK'event;
+				if (not endfile(file_VECTORS)) then 
+					wait until CLK = '1' and CLK'event;
+				end if;
 
 			end loop;
 			
@@ -221,6 +231,7 @@ begin
 		
 		wait until CLK = '1' and CLK'event;
 		S_AXIS_TLAST <= '0';
+		S_AXIS_TVALID <= '0';
 		
 		wait;
 	end process;
@@ -285,39 +296,43 @@ begin
 
 	-- end process;
 
-	process is
-	begin
-		S_AXIS_TVALID <= '0';
-		wait until RESETN = '1' and RESETN'event;
-		wait until RESETN = '1' and RESETN'event;
-		wait until CLK = '1' and CLK'event;
+	--process is
+	--begin
+	--	S_AXIS_TVALID <= '0';
+	--	wait until RESETN = '1' and RESETN'event;
+	--	wait until RESETN = '1' and RESETN'event;
+	--	wait until CLK = '1' and CLK'event;
 		
-		wait until START = '1';
-		S_AXIS_TVALID <= '1';
-		-- wait until CLK = '1' and CLK'event;
-		-- wait until CLK = '1' and CLK'event;
-		
-		-- wait until CLK = '1' and CLK'event;
-		-- wait until CLK = '1' and CLK'event;
-		-- S_AXIS_TVALID <= '0';
-		-- wait until CLK = '1' and CLK'event;
+	--	wait until START = '1';
+	--	S_AXIS_TVALID <= '1';
 
-		-- S_AXIS_TVALID <= '1';
-		-- wait for 1500 NS;
-		-- --wait until count = 300;
-		-- S_AXIS_TVALID <= '0';
-		-- wait for 200 NS;
-		-- S_AXIS_TVALID<='0';
-		-- wait for 180 NS;
-		-- S_AXIS_TVALID<='1';
-		-- wait for 520 NS;
-		-- S_AXIS_TVALID<='0';
-		-- wait for 1820 NS;
-		-- S_AXIS_TVALID<='1';
-		-- wait for 5250 NS;
-		-- -- S_AXIS_TVALID<='0';
-		wait;
-	end process;
+	--	wait until S_AXIS_TLAST = '1';
+	--	wait until CLK = '1' and CLK'event;
+	--	S_AXIS_TVALID <= '1';
+	--	-- wait until CLK = '1' and CLK'event;
+	--	-- wait until CLK = '1' and CLK'event;
+		
+	--	-- wait until CLK = '1' and CLK'event;
+	--	-- wait until CLK = '1' and CLK'event;
+	--	-- S_AXIS_TVALID <= '0';
+	--	-- wait until CLK = '1' and CLK'event;
+
+	--	-- S_AXIS_TVALID <= '1';
+	--	-- wait for 1500 NS;
+	--	-- --wait until count = 300;
+	--	-- S_AXIS_TVALID <= '0';
+	--	-- wait for 200 NS;
+	--	-- S_AXIS_TVALID<='0';
+	--	-- wait for 180 NS;
+	--	-- S_AXIS_TVALID<='1';
+	--	-- wait for 520 NS;
+	--	-- S_AXIS_TVALID<='0';
+	--	-- wait for 1820 NS;
+	--	-- S_AXIS_TVALID<='1';
+	--	-- wait for 5250 NS;
+	--	-- -- S_AXIS_TVALID<='0';
+	--	wait;
+	--end process;
 
 	process is
 		variable v_OLINE : line;
@@ -325,7 +340,7 @@ begin
 		variable v_SPACE : character;
 		variable count   : integer;
 	begin
-		file_open(file_RESULTS, "C:\res.txt", write_mode);
+		file_open(file_RESULTS, "res.txt", write_mode);
 		wait until RESETN = '1' and RESETN'event;
 		wait until RESETN = '1' and RESETN'event;
 		wait until CLK = '1' and CLK'event;
