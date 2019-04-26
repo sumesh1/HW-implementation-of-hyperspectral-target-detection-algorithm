@@ -325,9 +325,12 @@ proc create_root_design { parentCell } {
   connect_bd_net -net BRAM_WRAPPER_0_MATRIX_ROW [get_bd_pins BRAM_WRAPPER_0/MATRIX_ROW] [get_bd_pins TopLevel_wrapper_0/MATRIX_ROW]
   connect_bd_net -net BRAM_WRAPPER_0_STATIC_SRS [get_bd_pins BRAM_WRAPPER_0/STATIC_SRS] [get_bd_pins TopLevel_wrapper_0/STATIC_SRS]
   connect_bd_net -net BRAM_WRAPPER_0_STATIC_VECTOR_SR [get_bd_pins BRAM_WRAPPER_0/STATIC_VECTOR_SR] [get_bd_pins TopLevel_wrapper_0/STATIC_VECTOR_SR]
+  connect_bd_net [get_bd_pins TopLevel_wrapper_0/ALGORITHM_SELECT] [get_bd_pins BRAM_WRAPPER_0/ALGORITHM_SELECT]
   connect_bd_net -net TopLevel_wrapper_0_ROW_SELECT [get_bd_pins BRAM_WRAPPER_0/ROW_SELECT] [get_bd_pins TopLevel_wrapper_0/ROW_SELECT]
   connect_bd_net -net clk_1 [get_bd_ports clk] [get_bd_pins BRAM_WRAPPER_0/s00_axi_aclk] [get_bd_pins TopLevel_wrapper_0/CLK] [get_bd_pins axi_vip_0/aclk] [get_bd_pins div_gen_0/aclk]
   connect_bd_net -net resetn_1 [get_bd_ports resetn] [get_bd_pins BRAM_WRAPPER_0/s00_axi_aresetn] [get_bd_pins TopLevel_wrapper_0/RESETN] [get_bd_pins axi_vip_0/aresetn] [get_bd_pins div_gen_0/aresetn]
+  
+
 
   # Create address segments
   create_bd_addr_seg -range 0x00010000 -offset 0xC0000000 [get_bd_addr_spaces axi_vip_0/Master_AXI] [get_bd_addr_segs BRAM_WRAPPER_0/s00_axi/reg0] SEG_BRAM_WRAPPER_0_reg0

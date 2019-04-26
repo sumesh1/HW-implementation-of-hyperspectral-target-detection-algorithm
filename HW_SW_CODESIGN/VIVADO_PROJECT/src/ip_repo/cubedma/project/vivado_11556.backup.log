@@ -1,0 +1,64 @@
+#-----------------------------------------------------------
+# Vivado v2018.2 (64-bit)
+# SW Build 2258646 on Thu Jun 14 20:03:12 MDT 2018
+# IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
+# Start of session at: Thu Apr 11 18:55:20 2019
+# Process ID: 11556
+# Current directory: D:/SmallSAT/cubedma/cubedma/project
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent12508 D:\SmallSAT\cubedma\cubedma\project\cubedma.xpr
+# Log file: D:/SmallSAT/cubedma/cubedma/project/vivado.log
+# Journal file: D:/SmallSAT/cubedma/cubedma/project\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project D:/SmallSAT/cubedma/cubedma/project/cubedma.xpr
+INFO: [Project 1-313] Project file moved from '/home/johan/project/cubedma/project' since last save.
+Scanning sources...
+Finished scanning sources
+WARNING: [filemgmt 56-2] IPUserFilesDir: Could not find the directory 'D:/SmallSAT/cubedma/cubedma/project/cubedma.ip_user_files', nor could it be found using path 'D:/home/johan/project/cubedma/project/cubedma.ip_user_files'.
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/Xilinx/Vivado/2018.2/data/ip'.
+WARNING: [IP_Flow 19-2162] IP 'axi_datamover_s2mm' is locked:
+* IP definition 'AXI DataMover (5.1)' for IP 'axi_datamover_s2mm' (customized with software release 2017.4) has a different revision in the IP Catalog.
+Please select 'Report IP Status' from the 'Tools/Report' menu or run Tcl command 'report_ip_status' for more information.
+INFO: [Device 21-403] Loading part xc7z020clg484-1
+WARNING: [IP_Flow 19-2162] IP 'blk_mem_tb' is locked:
+* IP definition 'Block Memory Generator (8.3)' for IP 'blk_mem_tb' (customized with software release 2017.2.1) has a newer minor version in the IP Catalog.
+Please select 'Report IP Status' from the 'Tools/Report' menu or run Tcl command 'report_ip_status' for more information.
+WARNING: [IP_Flow 19-2162] IP 'blk_mem_tinymover_tb' is locked:
+* IP definition 'Block Memory Generator (8.3)' for IP 'blk_mem_tinymover_tb' (customized with software release 2017.2.1) has a newer minor version in the IP Catalog.
+Please select 'Report IP Status' from the 'Tools/Report' menu or run Tcl command 'report_ip_status' for more information.
+WARNING: [IP_Flow 19-2162] IP 'axi_datamover_mm2s' is locked:
+* IP definition 'AXI DataMover (5.1)' for IP 'axi_datamover_mm2s' (customized with software release 2017.4) has a different revision in the IP Catalog.
+Please select 'Report IP Status' from the 'Tools/Report' menu or run Tcl command 'report_ip_status' for more information.
+INFO: [Project 1-230] Project 'cubedma.xpr' upgraded for this version of Vivado.
+open_project: Time (s): cpu = 00:00:23 ; elapsed = 00:00:24 . Memory (MB): peak = 979.496 ; gain = 329.105
+update_compile_order -fileset sources_1
+ipx::package_project -root_dir d:/smallsat/cubedma/cubedma -vendor xilinx.com -library user -taxonomy /UserIP
+WARNING: [IP_Flow 19-4963] axi_datamover_mm2s has board value specified. The packaged IP will be restricted to usage with board 'em.avnet.com:zed:part0:0.9'
+INFO: [IP_Flow 19-5107] Inferred bus interface 'm_axis_mm2s' of definition 'xilinx.com:interface:axis:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axis_s2mm' of definition 'xilinx.com:interface:axis:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'm_axi_mem' of definition 'xilinx.com:interface:aximm:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's_axi_ctrl_status' of definition 'xilinx.com:interface:aximm:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'aresetn' of definition 'xilinx.com:signal:reset:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'clk' of definition 'xilinx.com:signal:clock:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 'mm2s_irq' of definition 'xilinx.com:signal:interrupt:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-5107] Inferred bus interface 's2mm_irq' of definition 'xilinx.com:signal:interrupt:1.0' (from Xilinx Repository).
+INFO: [IP_Flow 19-4728] Bus Interface 'aresetn': Added interface parameter 'POLARITY' with value 'ACTIVE_LOW'.
+INFO: [IP_Flow 19-4728] Bus Interface 'mm2s_irq': Added interface parameter 'SENSITIVITY' with value 'LEVEL_HIGH'.
+INFO: [IP_Flow 19-4728] Bus Interface 's2mm_irq': Added interface parameter 'SENSITIVITY' with value 'LEVEL_HIGH'.
+INFO: [IP_Flow 19-4728] Bus Interface 'clk': Added interface parameter 'ASSOCIATED_BUSIF' with value 'm_axis_mm2s'.
+INFO: [IP_Flow 19-4728] Bus Interface 'clk': Added interface parameter 'ASSOCIATED_RESET' with value 'aresetn'.
+INFO: [IP_Flow 19-2181] Payment Required is not set for this core.
+INFO: [IP_Flow 19-2187] The Product Guide file is missing.
+set_property widget {textEdit} [ipgui::get_guiparamspec -name "C_MM2S_AXIS_WIDTH" -component [ipx::current_core] ]
+set_property core_revision 2 [ipx::current_core]
+ipx::create_xgui_files [ipx::current_core]
+ipx::update_checksums [ipx::current_core]
+ipx::save_core [ipx::current_core]
+set_property  ip_repo_paths  d:/smallsat/cubedma/cubedma [current_project]
+update_ip_catalog
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'd:/smallsat/cubedma/cubedma'.
+exit
+INFO: [Common 17-206] Exiting Vivado at Thu Apr 11 19:00:24 2019...

@@ -63,7 +63,7 @@ create_ip_run [get_files -of_objects [get_fileset sources_1] ./$project_name/$pr
 set wrapper_name "${bd_name_sim}_wrapper"
 set_property top $wrapper_name [current_fileset]
 
-# Build the Block Design for synthesis
+# Build the Block Design for synthesis with AXI DMA
 source ./src/tcl/synsys.tcl
 
 # Create the HDL wrapper (if not user wrapper)
@@ -88,6 +88,37 @@ create_ip_run [get_files -of_objects [get_fileset sources_1] ./$project_name/$pr
 
 set wrapper_name "${bd_name_syn}_wrapper"
 set_property top $wrapper_name [current_fileset]
+
+
+
+
+# Build the Block Design for synthesis with CUBE DMA
+source ./src/tcl/cubedmasys.tcl
+
+# Create the HDL wrapper (if not user wrapper)
+if {!$user_wrapper} {
+	export_ip_user_files -of_objects  [get_files  ./$project_name/$project_name.srcs/sources_1/bd/$bd_name_syncube/$bd_name_syncube.bd] -sync -no_script -force -quiet
+	make_wrapper -files [get_files ./$project_name/$project_name.srcs/sources_1/bd/$bd_name_syncube/$bd_name_syncube.bd] -top
+	
+	set wrapper_name "${bd_name_syncube}_wrapper.vhd"
+	# Add the wrapper to the fileset
+	set obj [get_filesets sources_1]
+	set files [list \
+	 "[file normalize "./$project_name/$project_name.srcs/sources_1/bd/$bd_name_syncube/hdl/$wrapper_name"]"\
+	]
+	add_files -norecurse -fileset $obj $files
+}
+
+
+# Validate the BD and Generate the output products
+validate_bd_design 
+generate_target all [get_files ./$project_name/$project_name.srcs/sources_1/bd/$bd_name_syncube/$bd_name_syncube.bd]
+create_ip_run [get_files -of_objects [get_fileset sources_1] ./$project_name/$project_name.srcs/sources_1/bd/$bd_name_syncube/$bd_name_syncube.bd]
+
+set wrapper_name "${bd_name_syncube}_wrapper"
+set_property top $wrapper_name [current_fileset]
+
+
 
 
 # Create 'sim_1' fileset (if not found)

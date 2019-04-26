@@ -1,0 +1,127 @@
+/*
+
+Xilinx Vivado v2018.2 (64-bit) [Major: 2018, Minor: 2]
+SW Build: 2258646 on Thu Jun 14 20:03:12 MDT 2018
+IP Build: 2256618 on Thu Jun 14 22:10:49 MDT 2018
+
+Process ID: 18428
+License: Customer
+
+Current time: 	Fri Apr 26 17:45:31 CEST 2019
+Time zone: 	Central European Time (Europe/Prague)
+
+OS: Windows 10
+OS Version: 10.0
+OS Architecture: amd64
+Available processors (cores): 4
+
+Screen size: 1920x1080
+Screen resolution (DPI): 96
+Available screens: 1
+Available disk space: 29 GB
+Default font: family=Dialog,name=Dialog,style=plain,size=12
+
+Java version: 	1.8.0_112 64-bit
+Java home: 	C:/Xilinx/Vivado/2018.2/tps/win64/jre
+Java executable location: 	C:/Xilinx/Vivado/2018.2/tps/win64/jre/bin/java.exe
+Java initial memory (-Xms): 	128 MB
+Java maximum memory (-Xmx):	 2 GB
+
+
+User name: 	Dordije
+User home directory: C:/Users/Dordije
+User working directory: D:/SmallSAT/cubedma/cubedma/project
+User country: 	GB
+User language: 	en
+User locale: 	en_GB
+
+RDI_BASEROOT: C:/Xilinx/Vivado
+HDI_APPROOT: C:/Xilinx/Vivado/2018.2
+RDI_DATADIR: C:/Xilinx/Vivado/2018.2/data
+RDI_BINDIR: C:/Xilinx/Vivado/2018.2/bin
+
+Vivado preferences file location: C:/Users/Dordije/AppData/Roaming/Xilinx/Vivado/2018.2/vivado.xml
+Vivado preferences directory: C:/Users/Dordije/AppData/Roaming/Xilinx/Vivado/2018.2/
+Vivado layouts directory: C:/Users/Dordije/AppData/Roaming/Xilinx/Vivado/2018.2/layouts
+PlanAhead jar file location: 	C:/Xilinx/Vivado/2018.2/lib/classes/planAhead.jar
+Vivado log file location: 	D:/SmallSAT/cubedma/cubedma/project/vivado.log
+Vivado journal file location: 	D:/SmallSAT/cubedma/cubedma/project/vivado.jou
+Engine tmp dir: 	D:/SmallSAT/cubedma/cubedma/project/.Xil/Vivado-18428-DESKTOP-V1HSCN4
+
+Xilinx Environment Variables
+----------------------------
+XILINX: C:/Xilinx/Vivado/2018.2/ids_lite/ISE
+XILINX_DSP: C:/Xilinx/Vivado/2018.2/ids_lite/ISE
+XILINX_PLANAHEAD: C:/Xilinx/Vivado/2018.2
+XILINX_SDK: C:/Xilinx/SDK/2018.2
+XILINX_VIVADO: C:/Xilinx/Vivado/2018.2
+XILINX_VIVADO_HLS: C:/Xilinx/Vivado/2018.2
+
+
+GUI allocated memory:	140 MB
+GUI max memory:		3,052 MB
+Engine allocated memory: 513 MB
+
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+
+*/
+
+// TclEventType: START_GUI
+// Tcl Message: start_gui 
+// TclEventType: PROJECT_OPEN_DIALOG
+// bx (ck):  Open Project : addNotify
+// Opening Vivado Project: D:\SmallSAT\cubedma\cubedma\project\cubedma.xpr. Version: Vivado v2018.2 
+// [GUI Memory]: 53 MB (+52676kb) [00:00:07]
+// [Engine Memory]: 474 MB (+345074kb) [00:00:07]
+// TclEventType: DEBUG_PROBE_SET_CHANGE
+// TclEventType: MSGMGR_MOVEMSG
+// TclEventType: FILE_SET_NEW
+// TclEventType: RUN_CURRENT
+// TclEventType: IP_LOCK_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: IP_LOCK_CHANGE
+// TclEventType: LOAD_FEATURE
+// HMemoryUtils.trashcanNow. Engine heap size: 617 MB. GUI used memory: 37 MB. Current time: 4/26/19 5:45:34 PM CEST
+// [Engine Memory]: 633 MB (+142025kb) [00:00:12]
+// [Engine Memory]: 775 MB (+115757kb) [00:00:17]
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: IP_LOCK_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: IP_LOCK_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: PROJECT_NEW
+// [GUI Memory]: 59 MB (+3697kb) [00:00:30]
+// Tcl Message: open_project D:/SmallSAT/cubedma/cubedma/project/cubedma.xpr 
+// Tcl Message: Scanning sources... Finished scanning sources 
+// Tcl Message: INFO: [IP_Flow 19-234] Refreshing IP repositories INFO: [IP_Flow 19-1700] Loaded user IP repository 'd:/smallsat/cubedma/cubedma'. INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/Xilinx/Vivado/2018.2/data/ip'. 
+// Tcl Message: INFO: [Device 21-403] Loading part xc7z020clg484-1 
+// HMemoryUtils.trashcanNow. Engine heap size: 810 MB. GUI used memory: 41 MB. Current time: 4/26/19 5:45:55 PM CEST
+// Project name: cubedma; location: D:/SmallSAT/cubedma/cubedma/project; part: xc7z020clg484-1
+// Tcl Message: open_project: Time (s): cpu = 00:00:22 ; elapsed = 00:00:24 . Memory (MB): peak = 940.504 ; gain = 287.648 
+dismissDialog("Open Project"); // bx (ck)
+// TclEventType: DG_ANALYSIS_MSG_RESET
+// TclEventType: DG_GRAPH_GENERATED
+// [GUI Memory]: 62 MB (+578kb) [00:00:35]
+// Tcl Message: update_compile_order -fileset sources_1 
+// [Engine Memory]: 825 MB (+12401kb) [00:00:38]
+expandTree(PAResourceEtoH.FileSetPanel_FILE_SET_PANEL_TREE, "[root, Design Sources, IP-XACT]", 2); // B (D, ck)
+collapseTree(PAResourceEtoH.FileSetPanel_FILE_SET_PANEL_TREE, "[root, Design Sources, IP-XACT]", 2); // B (D, ck)
+expandTree(PAResourceEtoH.FileSetPanel_FILE_SET_PANEL_TREE, "[root, Design Sources, Coefficient Files]", 3); // B (D, ck)
+collapseTree(PAResourceEtoH.FileSetPanel_FILE_SET_PANEL_TREE, "[root, Design Sources, Coefficient Files]", 3); // B (D, ck)
+selectTree(PAResourceEtoH.FlowNavigatorTreePanel_FLOW_NAVIGATOR_TREE, "[, Project Manager, IP Catalog]", 4, false); // u (O, ck)
+// Run Command: PAResourceCommand.PACommandNames_CORE_GEN
+// [GUI Memory]: 69 MB (+3577kb) [00:00:49]
+// Elapsed time: 17 seconds
+expandTreeTable(PAResourceAtoD.CoreTreeTablePanel_CORE_TREE_TABLE, "UserIP ;  ;  ;  ; ", 1); // O (O, ck)
+selectTreeTable(PAResourceAtoD.CoreTreeTablePanel_CORE_TREE_TABLE, "cubedma_top_v1_0 ; AXI4, AXI4-Stream ; Production ; Included ; xilinx.com:user:cubedma_top:1.0", 2, "cubedma_top_v1_0", 0, false); // O (O, ck)
+selectTreeTable(PAResourceAtoD.CoreTreeTablePanel_CORE_TREE_TABLE, "cubedma_top_v1_0 ; AXI4, AXI4-Stream ; Production ; Included ; xilinx.com:user:cubedma_top:1.0", 2, "cubedma_top_v1_0", 0, false, false, false, false, true, false); // O (O, ck) - Popup Trigger
+selectMenuItem(RDIResourceCommand.RDICommands_PROPERTIES, "Properties..."); // ad (aj, ck)
+// Run Command: RDIResourceCommand.RDICommands_PROPERTIES
+// HMemoryUtils.trashcanNow. Engine heap size: 830 MB. GUI used memory: 42 MB. Current time: 4/26/19 5:46:39 PM CEST
+selectTreeTable(PAResourceAtoD.CoreTreeTablePanel_CORE_TREE_TABLE, "cubedma_top_v1_0 ; AXI4, AXI4-Stream ; Production ; Included ; xilinx.com:user:cubedma_top:1.0", 2, "cubedma_top_v1_0", 0, false, false, false, false, true, false); // O (O, ck) - Popup Trigger
+selectTreeTable(PAResourceAtoD.CoreTreeTablePanel_CORE_TREE_TABLE, "cubedma_top_v1_0 ; AXI4, AXI4-Stream ; Production ; Included ; xilinx.com:user:cubedma_top:1.0", 2, "cubedma_top_v1_0", 0, false); // O (O, ck)
+// [GUI Memory]: 74 MB (+1397kb) [00:01:24]
+// Elapsed time: 74 seconds
+selectTreeTable(PAResourceAtoD.CoreTreeTablePanel_CORE_TREE_TABLE, "cubedma_top_v1_0 ; AXI4, AXI4-Stream ; Production ; Included ; xilinx.com:user:cubedma_top:1.0", 2, "cubedma_top_v1_0", 0, false, false, false, false, true, false); // O (O, ck) - Popup Trigger
+selectMenuItem(RDIResourceCommand.RDICommands_PROPERTIES, "Properties..."); // ad (aj, ck)
+// Run Command: RDIResourceCommand.RDICommands_PROPERTIES
