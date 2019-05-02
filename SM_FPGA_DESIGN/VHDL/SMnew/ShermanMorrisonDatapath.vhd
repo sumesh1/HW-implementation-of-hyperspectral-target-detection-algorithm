@@ -409,16 +409,18 @@ begin
 	
 	end process;
 	
-	
+	--select what goes to divider
 	process (STEP2_DIV_IN,SRS_OUT, DIV_SEL)
 	begin
 	
 		case DIV_SEL is
 		
+			--for Sherman Morrison
 			when '0' =>
 			
 				M_DIV_AXIS_TDATA <= STEP2_DIV_IN (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
 			
+			-- for CEM ALGORITHM
 			when '1' =>
 			
 				M_DIV_AXIS_TDATA <= SRS_OUT (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
@@ -433,19 +435,23 @@ begin
 	end process;
 	
 
+	--sharing mult array for step 2 and step3 of Sherman Morrison
 	MULT_ARRAY_IN1   <= STEP2_INPUT when (MULT_ARRAY_SEL = '1') else STEP3_INPUT;
 	MULT_ARRAY_IN2   <= STEP1_DOTPROD when (MULT_ARRAY_SEL = '1') else TEMP_COLUMN_OUT;
 
 	STEP2_PROD       <= MULT_ARRAY_OUT;
 	STEP3_PROD       <= MULT_ARRAY_OUT;
 
+	--input of TEMP matrix
 	TEMP_COLUMN_IN   <= STEP2_PROD;
 
+	--input from AXI STREAM
 	COMPONENT_IN     <= S_AXIS_TDATA;
 
-	
+	--not used currently
 	CEM_DIV1		 <=	SRX_OUT (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
 	CEM_DIV2		 <= SRS_OUT (ACCUMULATOR_WIDTH - 1 downto ACCUMULATOR_WIDTH - OUT_DATA_WIDTH);
+	
 	
 	--STEP2/3_INPUT ASSIGNMENT
 	process (CLK, RESETN)
