@@ -365,7 +365,7 @@ begin
 	DATA1_OUT 		   <= Stage1_DataSROut (ST2IN_DATA_SLIDER downto ST2IN_DATA_SLIDER - ST2IN_DATA_WIDTH + 1) when ALGORITHM_SELECT = "11" 
 						  else Stage3_DataOut1 (OUT_DATA1_SLIDER downto OUT_DATA1_SLIDER - OUT_DATA_WIDTH + 1);
 
-	DATA2_OUT	 	   <= STATIC_SRS when ALGORITHM_SELECT = "11" 
+	DATA2_OUT	 	   <= std_logic_vector(resize(signed(STATIC_SRS), DATA2_OUT'length)) when ALGORITHM_SELECT = "11" 
 						  else Stage3_DataOut2 (OUT_DATA2_SLIDER downto OUT_DATA2_SLIDER - OUT_DATA_WIDTH + 1);
 
 	
