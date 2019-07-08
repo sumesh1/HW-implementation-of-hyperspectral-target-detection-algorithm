@@ -3,7 +3,7 @@
 %choose scene number
 s = 6;
 %choose target number
-tg= 1;
+tg= 3;
 %choose number of bands
 %q = 20;
 %write files or just to workspace
@@ -34,6 +34,7 @@ if(scene_name == "hymap")
    
    M  = M(x:(x+sizecut),y:(y+sizecut),:);
    gt = gt(x:(x+sizecut),y:(y+sizecut));
+  signatures  = scene.signatures_corrected;
 end
 
 
@@ -146,13 +147,24 @@ s4 = outbw-1;
 s5 = outbw-1;
 sliders=[s1 s2 s3 s4 s5]-5;
 
-resACER = hyperAceR_FP(double(M16),double(target16)',pixbw,brambw,outbw);
-resASMF = hyperASMF_FP(double(M16),double(target16)',pixbw,brambw,outbw);
+resACER  = hyperAceR_FP(double(M16),double(target16)',pixbw,brambw,outbw);
+resASMF  = hyperASMF_FP(double(M16),double(target16)',pixbw,brambw,outbw);
 resASMF2 = hyperASMF2_FP(double(M16),double(target16)',pixbw,brambw,outbw);
-resCEM = hyperCem_FP(double(M16),double(target16)',pixbw,brambw,outbw);
+resCEM   = hyperCem_FP(double(M16),double(target16)',pixbw,brambw,outbw);
 %clearvars -except M q gt_data_set
 
+res1=hyperAceR(double(M16),double(target16)');
+res2=hyperASMF(double(M16),double(target16)');
+res3=hyperASMF2(double(M16),double(target16)');
+res4=hyperCem(double(M16),double(target16)');
 
+[mcc,vis,auc]=getMCC(normalize(resACER),gt,tg)
+[mcc,vis,auc]=getMCC(normalize(resASMF),gt,tg)
+[mcc,vis,auc]=getMCC(normalize(resASMF2),gt,tg)
+[mcc,vis,auc]=getMCC(normalize(resCEM),gt,tg)
 
-
+[mcc,vis,auc]=getMCC(normalize(res1),gt,tg)
+[mcc,vis,auc]=getMCC(normalize(res2),gt,tg)
+[mcc,vis,auc]=getMCC(normalize(res3),gt,tg)
+[mcc,vis,auc]=getMCC(normalize(res4),gt,tg)
 

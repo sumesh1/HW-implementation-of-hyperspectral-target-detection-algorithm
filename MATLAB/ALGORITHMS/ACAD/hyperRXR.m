@@ -11,7 +11,6 @@ function [result] = hyperRXR(M)
 %   sigma - Covariance matrix (p x p)
 %   sigmaInv - Inverse of covariance matrix (p x p)
 
-% Remove the data mean
 [p, N] = size(M);
 
 % Compute covariance matrix

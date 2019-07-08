@@ -20,6 +20,6 @@ else
     [h, w, numBands] = size(M);
 end
 
-M = reshape(M, w*h, numBands).';
-
+M = reshape(permute(M,[2 1 3]), w*h, numBands).';
+%M = reshape(M, w*h, numBands).';
 return;
