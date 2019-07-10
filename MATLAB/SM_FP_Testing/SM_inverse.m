@@ -1,4 +1,4 @@
-
+%% Matrix inverse using Sherman-Morrison, testing 
 A =  rand(10,10);
 
 [n,~] = size(A);

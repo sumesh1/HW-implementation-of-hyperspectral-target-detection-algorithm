@@ -1,4 +1,5 @@
-
+% Used to load files from simulator for Sherman-Morrison Updating and
+% convert to matlab friendly variables
 %% Open and load files
 fid_st1 = fopen('res_step1.txt','r');
 fid_st2 = fopen('res_step2.txt','r');

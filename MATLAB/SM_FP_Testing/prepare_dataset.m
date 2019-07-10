@@ -26,9 +26,6 @@ M_pct = transpose(M_2d_pca*V);
 %M_new = hyperConvert3d(M_pct,h,w,q);
 M = M_pct;
 
-M(M>2^15-1) = 2^15-1;
-M(M<-2^15)  = -2^15;
-M = M/2^8;
 
 clearvars -except M q gt_data_set
              
