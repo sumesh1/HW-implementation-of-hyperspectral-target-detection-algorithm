@@ -55,7 +55,7 @@ begin
 	COMPONENT_OUT <= PIXEL_VECTOR(to_integer(unsigned(COMPONENT_NUMBER)));
 	
 
-	process (CLK, RESETN)
+	process (CLK)
 	begin
 		if (rising_edge (CLK)) then
 			if (RESETN = '0') then

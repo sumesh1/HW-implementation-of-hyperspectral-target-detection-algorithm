@@ -22,7 +22,7 @@ library IEEE;
 use IEEE . STD_LOGIC_1164 . all;
 use ieee . numeric_std . all;
 
-entity mult_datapath is
+entity dp_datapath_div is
 	generic (
 		bit_depth_1 : positive := 16;
 		bit_depth_2 : positive := 32;
@@ -37,42 +37,51 @@ entity mult_datapath is
 		in_2    : in std_logic_vector (bit_depth_2 - 1 downto 0);
 		p       : out std_logic_vector (P_bit_width - 1 downto 0)
 	);
-end mult_datapath;
+end dp_datapath_div;
 
-architecture Behavioral of mult_datapath is
+architecture Behavioral of dp_datapath_div is
 
 	signal mul_r 	: std_logic_vector ((bit_depth_1 + bit_depth_2 - 1) downto 0);
+	signal add_r 	: std_logic_vector ((P_BIT_WIDTH - 1) downto 0);
 	signal in_1_reg	: std_logic_vector (bit_depth_1 - 1 downto 0);
 	signal in_2_reg	: std_logic_vector (bit_depth_2 - 1 downto 0);
+	constant one : std_logic_vector (P_BIT_WIDTH-1 downto 0) := "0000000000000000000000000000000000000000100000000000000000"; 
 	
 begin
 
-	p <= mul_r ((bit_depth_1 + bit_depth_2 - 2) downto (bit_depth_1 + bit_depth_2 -1 - P_BIT_WIDTH));--std_logic_vector ( resize ( signed ( add_r ),p' length ));
+	p <= add_r;--std_logic_vector ( resize ( signed ( add_r ),p' length ));
 
-	process (clk, reset_n)
+	process (clk)
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then
 				
 				mul_r 		<= (others => '0');
+				add_r 		<= one;  --set to 1
 				in_1_reg	<= (others => '0');
 				in_2_reg	<= (others => '0');	
 				
 			elsif (en = '1') then
 				
 				if (clear = '1') then
-				
+					-- Ripple multiplication register data to accumulator 
+					--add_r <= std_logic_vector (resize(signed (mul_r), add_r'length));
 					mul_r 		<= (others => '0');
+					add_r 		<= one;  --set to 1 for fixed point implementation (48,17,31)
 					in_1_reg	<= (others => '0');
 					in_2_reg	<= (others => '0');	
-					
-				else 
+				
+				else
+				
 					--First pipeline stage regs
 					in_1_reg <= in_1;
 					in_2_reg <= in_2;
 					
 					-- Multiply in1 and in2
 					mul_r <= std_logic_vector (signed (in_1_reg) * signed (in_2_reg));
+					-- Acculumate result
+					add_r <= std_logic_vector (resize(signed (mul_r), add_r'length) + signed (add_r));--std_logic_vector ( resize ( signed ( mul_r )+ signed ( add_r ),add_r ' length ));
+				
 				end if;
 				
 			end if;

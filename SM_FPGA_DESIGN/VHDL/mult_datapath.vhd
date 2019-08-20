@@ -31,6 +31,7 @@ entity mult_datapath is
 	port (
 		clk     : in std_logic;
 		en      : in std_logic;
+		clear   : in std_logic;
 		reset_n : in std_logic;
 		in_1    : in std_logic_vector (bit_depth_1 - 1 downto 0);
 		in_2    : in std_logic_vector (bit_depth_2 - 1 downto 0);
@@ -46,9 +47,11 @@ architecture Behavioral of mult_datapath is
 	
 begin
 
-	p <= mul_r ((bit_depth_1 + bit_depth_2 - 2) downto (bit_depth_1 + bit_depth_2 -1 - P_BIT_WIDTH));--std_logic_vector ( resize ( signed ( add_r ),p' length ));
+	--p <= mul_r ((bit_depth_1 + bit_depth_2 - 2) downto (bit_depth_1 + bit_depth_2 -1 - P_BIT_WIDTH));--std_logic_vector ( resize ( signed ( add_r ),p' length ));
+   -- p <= mul_r ((bit_depth_1 + bit_depth_2 - 3) downto (bit_depth_1 + bit_depth_2 -2 - P_BIT_WIDTH));
+   	p <= mul_r;
 
-	process (clk, reset_n)
+	process (clk)
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then
@@ -59,13 +62,20 @@ begin
 				
 			elsif (en = '1') then
 				
-				--First pipeline stage regs
-				in_1_reg <= in_1;
-				in_2_reg <= in_2;
+				if (clear = '1') then
 				
-				-- Multiply in1 and in2
-				mul_r <= std_logic_vector (signed (in_1_reg) * signed (in_2_reg));
-				
+					mul_r 		<= (others => '0');
+					in_1_reg	<= (others => '0');
+					in_2_reg	<= (others => '0');	
+					
+				else 
+					--First pipeline stage regs
+					in_1_reg <= in_1;
+					in_2_reg <= in_2;
+					
+					-- Multiply in1 and in2
+					mul_r <= std_logic_vector (signed (in_1_reg) * signed (in_2_reg));
+				end if;
 				
 			end if;
 		end if;

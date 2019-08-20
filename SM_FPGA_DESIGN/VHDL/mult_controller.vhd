@@ -30,6 +30,7 @@ entity mult_controller is
 		clk     : in std_logic;
 		en      : in std_logic;
 		reset_n : in std_logic;
+		clear   : out std_logic;
 		p_rdy   : out std_logic
 	);
 end mult_controller;
@@ -44,19 +45,31 @@ begin
 	out_rdy <= '1' when (counter = PIPELINE_DEPTH and en = '1') else '0';
 	p_rdy   <= out_rdy;
 
-	process (clk, reset_n)
+	process (clk)
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then
 				counter <= 0;
+				clear <= '0';
 			elsif (en = '1') then
-
+				
+				clear <= '0';
+				
 				if (counter = PIPELINE_DEPTH) then
-					counter <= 1;
+					counter <= PIPELINE_DEPTH;
 				else
 					counter <= counter + 1;
 				end if;
+			
+			elsif(counter = PIPELINE_DEPTH) then
+			
+				counter <= 0;
+				clear <= '1';
 				
+			else
+
+				clear <= '0';
+			
 			end if;
 		end if;
 

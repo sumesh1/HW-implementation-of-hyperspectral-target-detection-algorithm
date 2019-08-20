@@ -20,18 +20,22 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.math_real.all;
-use ieee.numeric_std.all;
+use ieee.numeric_std.all; 
 library work;
 use work.td_package.all;
 
 entity ShermanMorrisonTopLevel is
 	generic (
-		NUM_BANDS              : positive := 16;
+		NUM_BANDS              : positive := 126;
 		PIXEL_DATA_WIDTH       : positive := 16;
-		CORRELATION_DATA_WIDTH : positive := 32;
-		OUT_DATA_WIDTH         : positive := 32;
-		C_S_AXI_DATA_WIDTH     : integer  := 32;
-		C_S_AXI_ADDR_WIDTH     : integer  := 4
+		CORRELATION_DATA_WIDTH : positive := 48;
+		OUT_DATA_WIDTH         : positive := 48;
+		DP_DATA_SLIDER   	   : positive := 60;
+		MARRST2_DATA_SLIDER	   : positive := 91;
+		MARRST3_DATA_SLIDER	   : positive := 83;
+		XRX_DATA_SLIDER        : positive := 62;
+		C_S_AXI_DATA_WIDTH     : integer  := 64;
+		C_S_AXI_ADDR_WIDTH     : integer  := 5
 	);
 	port (
 		CLK                : in std_logic;
@@ -42,13 +46,25 @@ entity ShermanMorrisonTopLevel is
 		S_AXIS_TVALID      : in std_logic;
 		S_AXIS_TREADY      : out std_logic;
 
+
+		--delayed pixel stream from FIFO
+		S_AXIS_FIFO_TDATA       : in std_logic_vector(PIXEL_DATA_WIDTH - 1 downto 0);
+		S_AXIS_FIFO_TVALID      : in std_logic;
+		S_AXIS_FIFO_TREADY      : out std_logic;
+
 		--stream from divider
-		S_DIV_AXIS_TDATA   : in std_logic_vector(39 downto 0);
+		S_DIV_AXIS_TDATA   : in std_logic_vector(OUT_DATA_WIDTH*2 -1 downto 0);
 		S_DIV_AXIS_TVALID  : in std_logic;
 
 		--stream to divider
-		M_DIV_AXIS_TDATA   : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		--M_DIV_AXIS_TDATA   : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		M_DIV_AXIS_TDATA   : out std_logic_vector(40 - 1 downto 0);
 		M_DIV_AXIS_TVALID  : out std_logic;
+
+		--reciprocal to divider -- set to 1 in appropriate fixed point format 
+		--M_DIV1_AXIS_TDATA  : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		M_DIV1_AXIS_TDATA  : out std_logic_vector(40 - 1 downto 0);
+		M_DIV1_AXIS_TVALID : out std_logic;
 		
 		--S AXI
 		S_AXI_AWADDR       : in std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
@@ -74,7 +90,8 @@ entity ShermanMorrisonTopLevel is
 		
 		--M AXIS
 		M_AXIS_TVALID : out std_logic;
-		M_AXIS_TDATA  : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		--M_AXIS_TDATA  : out std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+		M_AXIS_TDATA  : out std_logic_vector(64 - 1 downto 0);
 		M_AXIS_TLAST  : out std_logic;
 		M_AXIS_TREADY : in std_logic
 		
@@ -100,11 +117,14 @@ architecture Behavioral of ShermanMorrisonTopLevel is
 	signal LAST_PIXEL	 : std_logic;
 	
 	--temp
-	signal M_DIV_AXIS_TDATA_temp  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
-	signal M_DIV_AXIS_TVALID_temp : std_logic;
+	signal M_DIV_AXIS_TDATA_temp   : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal M_DIV_AXIS_TVALID_temp  : std_logic;
+	signal M_DIV1_AXIS_TDATA_temp  : std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal M_DIV1_AXIS_TVALID_temp : std_logic;
 	
 	--output
 	signal OUTPUT_STREAM  		: std_logic_vector(OUT_DATA_WIDTH - 1 downto 0);
+	signal OUTPUT_STREAMEXT 	: std_logic_vector(64 - 1 downto 0);
 	signal OUTPUT_STREAM_VALID  : std_logic;
 	
 begin
@@ -118,16 +138,19 @@ begin
 			NUM_BANDS => NUM_BANDS
 		)
 		port map(
-			CLK                => CLK,
-			RESETN             => RESETN,
-			VALID_SIGS         => VALID_SIGS,
-			S_AXIS_TVALID      => S_AXIS_TVALID,
-			S_AXIS_TREADY      => S_AXIS_TREADY,
-			CONTROLLER_SIGS    => CONTROLLER_SIGS,
-			INPUT_COLUMN_VALID => INIT_COLUMN_VALID,
-			S_DIV_AXIS_TVALID  => S_DIV_AXIS_TVALID,
-			M_DIV_AXIS_TVALID  => M_DIV_AXIS_TVALID_temp,
-			ENABLE_CORE        => ENABLE_CORE
+			CLK                 => CLK,
+			RESETN              => RESETN,
+			VALID_SIGS          => VALID_SIGS,
+			S_AXIS_TVALID       => S_AXIS_TVALID,
+			S_AXIS_TREADY       => S_AXIS_TREADY,
+			S_AXIS_FIFO_TVALID  => S_AXIS_FIFO_TVALID,
+			S_AXIS_FIFO_TREADY  => S_AXIS_FIFO_TREADY,
+			CONTROLLER_SIGS     => CONTROLLER_SIGS,
+			INPUT_COLUMN_VALID  => INIT_COLUMN_VALID,
+			S_DIV_AXIS_TVALID   => S_DIV_AXIS_TVALID,
+			M_DIV_AXIS_TVALID   => M_DIV_AXIS_TVALID_temp,
+			OUTPUT_STREAM_VALID => OUTPUT_STREAM_VALID,
+			ENABLE_CORE         => ENABLE_CORE
 		);
 
 	ShermanMorrisonDatapathInst : entity work.ShermanMorrisonDatapath(BRAM)
@@ -135,7 +158,11 @@ begin
 			NUM_BANDS              => NUM_BANDS,
 			PIXEL_DATA_WIDTH       => PIXEL_DATA_WIDTH,
 			CORRELATION_DATA_WIDTH => CORRELATION_DATA_WIDTH,
-			OUT_DATA_WIDTH         => OUT_DATA_WIDTH
+			OUT_DATA_WIDTH         => OUT_DATA_WIDTH,
+			DP_DATA_SLIDER		   => DP_DATA_SLIDER,
+			MARRST2_DATA_SLIDER    => MARRST2_DATA_SLIDER,
+			MARRST3_DATA_SLIDER    => MARRST3_DATA_SLIDER,
+			XRX_DATA_SLIDER	       => XRX_DATA_SLIDER
 		)
 		port map(
 			CLK               => CLK,
@@ -143,9 +170,12 @@ begin
 			CONTROLLER_SIGS   => CONTROLLER_SIGS,
 			VALID_SIGS        => VALID_SIGS,
 			S_AXIS_TDATA      => S_AXIS_TDATA,
+			S_AXIS_FIFO_TDATA => S_AXIS_FIFO_TDATA,
 			S_DIV_AXIS_TDATA  => S_DIV_AXIS_TDATA,
 			S_DIV_AXIS_TVALID => S_DIV_AXIS_TVALID,
 			M_DIV_AXIS_TDATA  => M_DIV_AXIS_TDATA_temp,
+			M_DIV1_AXIS_TDATA => M_DIV1_AXIS_TDATA_temp,
+			OUTPUT_STREAM     => OUTPUT_STREAM,
 			INPUT_COLUMN      => INIT_COLUMN,
 			SIGNATURE_VECTOR  => SIGNATURE_VECTOR
 		);
@@ -174,13 +204,14 @@ begin
 		
 	MasterAxisInst: entity work.MasterOutput(Behavioral) 
 		generic map (
-		DATA_WIDTH  => CORRELATION_DATA_WIDTH ,
+	--	DATA_WIDTH  => CORRELATION_DATA_WIDTH ,
+		DATA_WIDTH  => 64 ,
 		PACKET_SIZE => 8
 		)
 		port map (
 		CLK           	=> CLK,
 		RESETN        	=> RESETN,
-		DATA_IN       	=> OUTPUT_STREAM,
+		DATA_IN       	=> OUTPUT_STREAMEXT,
 		DATA_IN_VALID 	=> OUTPUT_STREAM_VALID,
 		M_AXIS_TVALID 	=> M_AXIS_TVALID, 
 		M_AXIS_TDATA  	=> M_AXIS_TDATA,  
@@ -191,18 +222,28 @@ begin
 		);
 
 
+
+
+
 ---------------------------------------------------------------------------------	 
 -- PACKING
 ---------------------------------------------------------------------------------	
 
 	--send to divider
-	M_DIV_AXIS_TDATA   <=  M_DIV_AXIS_TDATA_temp ;
-    M_DIV_AXIS_TVALID  <=  M_DIV_AXIS_TVALID_temp;
-	
-	
+	M_DIV_AXIS_TDATA    <=  std_logic_vector(resize(signed(M_DIV_AXIS_TDATA_temp),40)) ;
+    M_DIV_AXIS_TVALID   <=  M_DIV_AXIS_TVALID_temp;
+	--reciprocal to divider -- set to 1 in appropriate fixed point format 
+	M_DIV1_AXIS_TDATA   <=   std_logic_vector(resize(signed(M_DIV1_AXIS_TDATA_temp),40));
+    M_DIV1_AXIS_TVALID  <=  '1';
+	-- 
+	--M_DIV1_AXIS_TDATA  <= "000000000000000010000000000000000000000000000000"; 
+	--M_DIV1_AXIS_TVALID <= '1';
+
+
+	OUTPUT_STREAMEXT <=  std_logic_vector(resize(signed(OUTPUT_STREAM),64));
 	--send to DMA
-	OUTPUT_STREAM 	   	<= M_DIV_AXIS_TDATA_temp;
-	OUTPUT_STREAM_VALID	<= M_DIV_AXIS_TVALID_temp;
+	--OUTPUT_STREAM 	   	<= M_DIV_AXIS_TDATA_temp;
+	--OUTPUT_STREAM_VALID	<= M_DIV_AXIS_TVALID_temp;
 	
 
 	S_AXI_IN <=

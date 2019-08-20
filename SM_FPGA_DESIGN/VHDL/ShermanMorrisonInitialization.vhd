@@ -1,10 +1,10 @@
-----------------------------------------------------------------------------------
+ ----------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: Dordije Boskovic
 -- 
 -- Create Date: 
 -- Design Name: 
--- Module Name: BRAM controller via AXI LITE - Behavioral
+-- Module Name:  via AXI LITE - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -19,93 +19,107 @@
 ----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
+use ieee.numeric_std.all; 
+use ieee.math_real.all;  
 
-entity AXI_BRAM is
+library work;
+use work.td_package.all;
+
+entity AXI_CONTROL is  	
 	generic (
 		-- Width of S_AXI data bus
-		C_S_AXI_DATA_WIDTH : integer := 32;
+		C_S_AXI_DATA_WIDTH     : integer  := 32;
 		-- Width of S_AXI address bus
-		C_S_AXI_ADDR_WIDTH : integer := 4;
+		C_S_AXI_ADDR_WIDTH     : integer  := 4;
 		--BRAM PARAMETERS
-		BRAM_DATA_WIDTH    : integer := 32;
-		NUM_BANDS          : integer := 16;
-		BRAM_ADDR_WIDTH    : integer := integer(ceil(log2(real(NUM_BANDS))))
+		CORRELATION_DATA_WIDTH : positive := 32;
+		PIXEL_DATA_WIDTH       : positive := 16;
+		NUM_BANDS              : integer  := 16;
+		ADDR_WIDTH             : integer  := 4		--integer(ceil(log2(real(NUM_BANDS))))
 	);
 	port (
+	
 		-- Global Clock Signal
-		S_AXI_ACLK       : in std_logic;
+		S_AXI_ACLK             : std_logic;
 		-- Global Reset Signal. This Signal is Active LOW
-		S_AXI_ARESETN    : in std_logic;
-		-- Write address (issued by master, acceped by Slave)
-		S_AXI_AWADDR     : in std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
-		-- Write channel Protection type. This signal indicates the
-		-- privilege and security level of the transaction, and whether
-		-- the transaction is a data access or an instruction access.
-		S_AXI_AWPROT     : in std_logic_vector(2 downto 0);
-		-- Write address valid. This signal indicates that the master signaling
-		-- valid write address and control information.
-		S_AXI_AWVALID    : in std_logic;
-		-- Write address ready. This signal indicates that the slave is ready
-		-- to accept an address and associated control signals.
-		S_AXI_AWREADY    : out std_logic;
-		-- Write data (issued by master, acceped by Slave) 
-		S_AXI_WDATA      : in std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
-		-- Write strobes. This signal indicates which byte lanes hold
-		-- valid data. There is one write strobe bit for each eight
-		-- bits of the write data bus.    
-		S_AXI_WSTRB      : in std_logic_vector((C_S_AXI_DATA_WIDTH/8) - 1 downto 0);
-		-- Write valid. This signal indicates that valid write
-		-- data and strobes are available.
-		S_AXI_WVALID     : in std_logic;
-		-- Write ready. This signal indicates that the slave
-		-- can accept the write data.
-		S_AXI_WREADY     : out std_logic;
-		-- Write response. This signal indicates the status
-		-- of the write transaction.
-		S_AXI_BRESP      : out std_logic_vector(1 downto 0);
-		-- Write response valid. This signal indicates that the channel
-		-- is signaling a valid write response.
-		S_AXI_BVALID     : out std_logic;
-		-- Response ready. This signal indicates that the master
-		-- can accept a write response.
-		S_AXI_BREADY     : in std_logic;
-		-- Read address (issued by master, acceped by Slave)
-		S_AXI_ARADDR     : in std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
-		-- Protection type. This signal indicates the privilege
-		-- and security level of the transaction, and whether the
-		-- transaction is a data access or an instruction access.
-		S_AXI_ARPROT     : in std_logic_vector(2 downto 0);
-		-- Read address valid. This signal indicates that the channel
-		-- is signaling valid read address and control information.
-		S_AXI_ARVALID    : in std_logic;
-		-- Read address ready. This signal indicates that the slave is
-		-- ready to accept an address and associated control signals.
-		S_AXI_ARREADY    : out std_logic;
-		-- Read data (issued by slave)
-		S_AXI_RDATA      : out std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
-		-- Read response. This signal indicates the status of the
-		-- read transfer.
-		S_AXI_RRESP      : out std_logic_vector(1 downto 0);
-		-- Read valid. This signal indicates that the channel is
-		-- signaling the required read data.
-		S_AXI_RVALID     : out std_logic;
-		-- Read ready. This signal indicates that the master can
-		-- accept the read data and response information.
-		S_AXI_RREADY     : in std_logic;
-		--MATRIX OUTPUT
-		MATRIX_ROW       : out std_logic_vector(BRAM_DATA_WIDTH * NUM_BANDS - 1 downto 0);
-		--SELECTION OF ROW
-		ROW_SELECT       : in std_logic_vector (BRAM_ADDR_WIDTH - 1 downto 0);
-		--STATIC VECTOR OUT
-		STATIC_VECTOR_SR : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
-		--STATIC NUMBER sR^-1s
-		--STATIC_SRS		 : out std_logic_vector (BRAM_DATA_WIDTH - 1 downto 0)
-	);
-end AXI_BRAM;
+		S_AXI_ARESETN          : std_logic;
+		
+		S_AXI_IN			   : in S_AXI_FROM_MASTER;
+		S_AXI_OUT			   : out S_AXI_TO_MASTER;
+		
+		--TEMPORARY COLUMN
+		TEMP_INIT_COLUMN       : out std_logic_vector(NUM_BANDS * CORRELATION_DATA_WIDTH - 1 downto 0);
+		TEMP_INIT_COLUMN_VALID : out std_logic;
+		
+		--SIGNATURE--TARGET TO BE DETECTED
+		SIGNATURE_VECTOR       : out std_logic_vector(NUM_BANDS * PIXEL_DATA_WIDTH - 1 downto 0);
+		
+		--ENABLE CORE
+		ENABLE_CORE			   : out std_logic
 
-architecture arch_imp of AXI_BRAM is
+	);
+end AXI_CONTROL;
+
+architecture arch_imp of AXI_CONTROL is
+
+	-- Write address (issued by master, acceped by Slave)
+	signal S_AXI_AWADDR           : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
+	-- Write channel Protection type. This signal indicates the
+	-- privilege and security level of the transaction, and whether
+	-- the transaction is a data access or an instruction access.
+	signal S_AXI_AWPROT           : std_logic_vector(2 downto 0);
+	-- Write address valid. This signal indicates that the master signaling
+	-- valid write address and control information.
+	signal S_AXI_AWVALID          : std_logic;
+	-- Write data (issued by master, acceped by Slave) 
+	signal S_AXI_WDATA            : std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+	-- Write strobes. This signal indicates which byte lanes hold
+	-- valid data. There is one write strobe bit for each eight
+	-- bits of the write data bus.    
+	signal S_AXI_WSTRB            : std_logic_vector((C_S_AXI_DATA_WIDTH/8) - 1 downto 0);
+	-- Write valid. This signal indicates that valid write
+	-- data and strobes are available.
+	signal S_AXI_WVALID           : std_logic;
+	-- Response ready. This signal indicates that the master
+	-- can accept a write response.
+	signal S_AXI_BREADY           : std_logic;
+	-- Read address (issued by master, acceped by Slave)
+	signal S_AXI_ARADDR           : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
+	-- Protection type. This signal indicates the privilege
+	-- and security level of the transaction, and whether the
+	-- transaction is a data access or an instruction access.
+	signal S_AXI_ARPROT           : std_logic_vector(2 downto 0);
+	-- Read address valid. This signal indicates that the channel
+	-- is signaling valid read address and control information.
+	signal S_AXI_ARVALID          : std_logic;
+	-- Read ready. This signal indicates that the master can
+	-- accept the read data and response information.
+	signal S_AXI_RREADY           : std_logic;
+	-- Write address ready. This signal indicates that the slave is ready
+	-- to accept an address and associated control signals.
+	signal S_AXI_AWREADY          : std_logic;
+	-- Write ready. This signal indicates that the slave
+	-- can accept the write data.
+	signal S_AXI_WREADY           : std_logic;
+	-- Write response. This signal indicates the status
+	-- of the write transaction.
+	signal S_AXI_BRESP            : std_logic_vector(1 downto 0);
+	-- Write response valid. This signal indicates that the channel
+	-- is signaling a valid write response.
+	signal S_AXI_BVALID           : std_logic;
+		-- Read address ready. This signal indicates that the slave is
+	-- ready to accept an address and associated control signals.
+	signal S_AXI_ARREADY          : std_logic;
+	-- Read data (issued by slave)
+	signal S_AXI_RDATA            : std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
+	-- Read response. This signal indicates the status of the
+	-- read transfer.
+	signal S_AXI_RRESP            : std_logic_vector(1 downto 0);
+	-- Read valid. This signal indicates that the channel is
+	-- signaling the required read data.
+	signal S_AXI_RVALID           : std_logic;
+
+
 
 	-- AXI4LITE signals
 	signal axi_awaddr          : std_logic_vector(C_S_AXI_ADDR_WIDTH - 1 downto 0);
@@ -141,80 +155,43 @@ architecture arch_imp of AXI_BRAM is
 	signal reg_data_out        : std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
 	signal byte_index          : integer;
 	signal aw_en               : std_logic;
-
-	--CORR MATRIX BRAM SIGNALS
-	signal we                  : std_logic_vector(NUM_BANDS - 1 downto 0);
-	signal we_temp             : std_logic_vector(NUM_BANDS - 1 downto 0);
-	signal r_addr              : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
-	signal w_addr              : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
-	signal din                 : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
-	signal dout                : std_logic_vector (BRAM_DATA_WIDTH * NUM_BANDS - 1 downto 0);
-
-	--STATIC VECTOR sR SIGNALS
-	signal VEC_we              : std_logic_vector (0 downto 0);
-	signal VEC_r_addr          : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
-	signal VEC_w_addr          : std_logic_vector(BRAM_ADDR_WIDTH - 1 downto 0);
-	signal VEC_din             : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
-	signal VEC_dout            : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
-	
-	--STATIC NUMBER sR^-1s
-	signal STAT_sRs            : std_logic_vector(BRAM_DATA_WIDTH - 1 downto 0);
-
-	signal DEBUG_SELECT		   : std_logic_vector(C_S_AXI_DATA_WIDTH - 1 downto 0);
-	signal DEBUG			   : std_logic;
-	
-	component BRAM is
-		generic (
-			SIZE       : integer := 16;
-			ADDR_WIDTH : integer := 4;
-			COL_WIDTH  : integer := 32;
-			NB_COL     : integer := 16);
-		port (
-			clk    : in std_logic;
-			we     : in std_logic_vector(NB_COL - 1 downto 0);
-			r_addr : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
-			w_addr : in std_logic_vector(ADDR_WIDTH - 1 downto 0);
-			din    : in std_logic_vector(COL_WIDTH - 1 downto 0);
-			dout   : out std_logic_vector (NB_COL * COL_WIDTH - 1 downto 0)
-		);
-
-	end component;
 begin
 
-	------------------------------------------------------------------------------
-	-- BRAM INITIALIZATION
-	------------------------------------------------------------------------------
-	BRAM_MATRIX_init : BRAM
-	generic map(
-		SIZE       => NUM_BANDS,
-		ADDR_WIDTH => BRAM_ADDR_WIDTH,
-		COL_WIDTH  => BRAM_DATA_WIDTH,
-		NB_COL     => NUM_BANDS
-	)
-	port map(
-		clk    => S_AXI_ACLK,
-		we     => we,
-		r_addr => r_addr,
-		w_addr => w_addr,
-		din    => din,
-		dout   => dout
-	);
+---------------------------------------------------------------------------------	 
+-- PACKING
+---------------------------------------------------------------------------------	
 
-	BRAM_STATIC_init : BRAM
-	generic map(
-		SIZE       => NUM_BANDS,
-		ADDR_WIDTH => BRAM_ADDR_WIDTH,
-		COL_WIDTH  => BRAM_DATA_WIDTH,
-		NB_COL     => 1
-	)
-	port map(
-		clk    => S_AXI_ACLK,
-		we     => VEC_we,
-		r_addr => VEC_r_addr,
-		w_addr => VEC_w_addr,
-		din    => VEC_din,
-		dout   => VEC_dout
-	);
+	S_AXI_OUT <=
+		(
+		S_AXI_AWREADY      => S_AXI_AWREADY,
+		S_AXI_WREADY       => S_AXI_WREADY ,
+		S_AXI_BRESP        => S_AXI_BRESP  ,
+		S_AXI_BVALID       => S_AXI_BVALID ,
+		S_AXI_ARREADY      => S_AXI_ARREADY,
+		S_AXI_RDATA        => S_AXI_RDATA  ,
+		S_AXI_RRESP        => S_AXI_RRESP  ,
+		S_AXI_RVALID       => S_AXI_RVALID 
+		);
+		
+	S_AXI_AWADDR     <= S_AXI_IN.S_AXI_AWADDR  ;
+	S_AXI_AWPROT     <= S_AXI_IN.S_AXI_AWPROT  ;
+	S_AXI_AWVALID 	 <= S_AXI_IN.S_AXI_AWVALID ;
+	S_AXI_WDATA      <= S_AXI_IN.S_AXI_WDATA   ;
+	S_AXI_WSTRB      <= S_AXI_IN.S_AXI_WSTRB   ;
+	S_AXI_WVALID     <= S_AXI_IN.S_AXI_WVALID  ;
+	S_AXI_BREADY     <= S_AXI_IN.S_AXI_BREADY  ;
+	S_AXI_ARADDR     <= S_AXI_IN.S_AXI_ARADDR  ;
+	S_AXI_ARPROT     <= S_AXI_IN.S_AXI_ARPROT  ;
+	S_AXI_ARVALID    <= S_AXI_IN.S_AXI_ARVALID ;
+	S_AXI_RREADY     <= S_AXI_IN.S_AXI_RREADY  ;
+	                
+	
+---------------------------------------------------------------------------------	 
+-- MODULE
+---------------------------------------------------------------------------------	
+
+
+
 	-- I/O Connections assignments
 
 	S_AXI_AWREADY <= axi_awready;
@@ -377,7 +354,7 @@ begin
 					axi_bvalid <= '1';
 					axi_bresp  <= "00";
 				elsif (S_AXI_BREADY = '1' and axi_bvalid = '1') then --check if bready is asserted while bvalid is high)
-					axi_bvalid <= '0'; -- (there is a possibility that bready is always asserted high)
+					axi_bvalid <= '0';                                   -- (there is a possibility that bready is always asserted high)
 				end if;
 			end if;
 		end if;
@@ -441,16 +418,16 @@ begin
 	-- and the slave is ready to accept the read address.
 	slv_reg_rden <= axi_arready and S_AXI_ARVALID and (not axi_rvalid);
 
-	process (slv_reg0, slv_reg1, slv_reg2, slv_reg3, dout, VEC_dout, axi_araddr, S_AXI_ARESETN, slv_reg_rden)
+	process (slv_reg0, slv_reg1, slv_reg2, slv_reg3, axi_araddr, S_AXI_ARESETN, slv_reg_rden)
 		variable loc_addr : std_logic_vector(OPT_MEM_ADDR_BITS downto 0);
 	begin
 		-- Address decoding for reading registers
 		loc_addr := axi_araddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
 		case loc_addr is
 			when b"00" =>
-				reg_data_out <= dout(BRAM_DATA_WIDTH-1 downto 0);
+				reg_data_out <= slv_reg0;
 			when b"01" =>
-				reg_data_out <= VEC_dout;
+				reg_data_out <= slv_reg1;
 			when b"10" =>
 				reg_data_out <= slv_reg2;
 			when b"11" =>
@@ -474,136 +451,84 @@ begin
 					-- Read address mux
 					axi_rdata <= reg_data_out; -- register read data
 				end if;
-			end if;
+			end if; 
 		end if;
 	end process;
-	
-	
 	------------------------------------------------------------------------------
 	-- BRAM HANDLING
 	------------------------------------------------------------------------------
 	process (S_AXI_ACLK) is
 	begin
 		if (rising_edge (S_AXI_ACLK)) then
-		
+
 			if (S_AXI_ARESETN = '0') then
-			
+
 				slv_reg_wren_dly <= '0';
 				axi_awaddr_dly   <= (others => '0');
-				
+
 			else
-			
+
 				axi_awaddr_dly   <= axi_awaddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
 				slv_reg_wren_dly <= slv_reg_wren;
-				
+
 			end if;
-			
+
 		end if;
 	end process;
-
-	--MATRIX select
-	r_addr           <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
-	MATRIX_ROW       <= dout;
-
-	--VECTOR select
-	VEC_r_addr       <= ROW_SELECT when DEBUG = '0' else DEBUG_SELECT(BRAM_ADDR_WIDTH - 1 downto 0);
-	STATIC_VECTOR_SR <= VEC_dout;
 	
-	--STATIC NUMBER sR^-1s
-	--STATIC_SRS		 <= STAT_sRs;
+	
 	
 	process (S_AXI_ACLK) is
-		variable matrix_count : integer := 0;
 		variable vector_count : integer := 0;
+		variable sig_count	  : integer := 0;
 	begin
 		if (rising_edge (S_AXI_ACLK)) then
 			if (S_AXI_ARESETN = '0') then
-			
-				we         <= (others         => '0');
-				we_temp    <= (others         => '0');
-				w_addr     <= (others     => '0');
-				din        <= (others        => '0');
-				VEC_we     <= (others     => '0');
-				VEC_w_addr <= (others => '0');
-				VEC_din    <= (others    => '0');
-				DEBUG_SELECT<= (others => '0');
-				DEBUG	   <= '0';
-				matrix_count := 0;
-				vector_count := 0;
-				
+
+				TEMP_INIT_COLUMN_VALID <= '0';
+				TEMP_INIT_COLUMN       <= (others => '0');
+
 			else
+				
+				if (vector_count = NUM_BANDS) then
 
-				--MATRIX handling - keyhole writing to slv_reg0
-				if (slv_reg_wren_dly = '1' and matrix_count < NUM_BANDS * NUM_BANDS and axi_awaddr_dly = b"00") then
-
-					din <= slv_reg0;
-
-					if (matrix_count = 0) then
-					
-						we      <= std_logic_vector(to_unsigned(1, we'length));
-						we_temp <= std_logic_vector(to_unsigned(1, we'length));
-
-					elsif ( (matrix_count mod NUM_BANDS ) = 0) then
-					
-						w_addr  <= std_logic_vector(unsigned(w_addr) + 1);
-						we      <= std_logic_vector(to_unsigned(1, we'length));
-						we_temp <= std_logic_vector(to_unsigned(1, we'length));
-						
-					else
-					
-						we_temp <= std_logic_vector(unsigned(we_temp) sll 1);
-						we      <= std_logic_vector(unsigned(we_temp) sll 1);
-					
-					end if;
-
-					matrix_count := matrix_count + 1;
+					TEMP_INIT_COLUMN_VALID <= '1';
+					vector_count := 0;
 
 				else
+
+					TEMP_INIT_COLUMN_VALID <= '0';
+
+				end if;
 				
-					we <= (others => '0');
-					
+				
+				
+				-- ENABLE SIGNAL
+				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"00") then
+
+					ENABLE_CORE  <= slv_reg0(0);
+
 				end if;
 
 				--VECTOR handling - keyhole writing to slv_reg1
 				if (slv_reg_wren_dly = '1' and vector_count < NUM_BANDS and axi_awaddr_dly = b"01") then
 
-					VEC_din    <= slv_reg1;
-					VEC_we     <= (others => '1');
-					
-					if(vector_count /= 0) then
-					
-						VEC_w_addr <= std_logic_vector(unsigned(VEC_w_addr) + 1);
-				
-					end if;
-					
+					TEMP_INIT_COLUMN_VALID                                                                                              <= '0';
+					TEMP_INIT_COLUMN ((CORRELATION_DATA_WIDTH) * (vector_count + 1) - 1 downto (CORRELATION_DATA_WIDTH) * vector_count) <= slv_reg1(CORRELATION_DATA_WIDTH-1 downto 0);
+
 					vector_count := vector_count + 1;
 
-				else
-				
-					VEC_we <= (others => '0');
-					
 				end if;
 				
-				--DEBUG and sRs number
-				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"10") then
-					
-					DEBUG_SELECT    <= slv_reg2;
-					
-					if(DEBUG = '0') then
-					
-						STAT_sRs	<= slv_reg2;
-						
-					end if;
+				--SIGNATURE handling - keyhole writing to slv_reg2
+				if (slv_reg_wren_dly = '1' and sig_count < NUM_BANDS and axi_awaddr_dly = b"10") then
+
+					SIGNATURE_VECTOR ((PIXEL_DATA_WIDTH) * (sig_count + 1) - 1 downto (PIXEL_DATA_WIDTH) * sig_count) <= slv_reg2(PIXEL_DATA_WIDTH-1 downto 0);
+
+					sig_count := sig_count + 1;
 
 				end if;
 				
-				
-				--ENABLE OR DISABLE DEBUG MODE
-				if (slv_reg_wren_dly = '1' and axi_awaddr_dly = b"11") then
-
-					DEBUG    <= slv_reg3(0);
-
-				end if;
 
 			end if;
 		end if;

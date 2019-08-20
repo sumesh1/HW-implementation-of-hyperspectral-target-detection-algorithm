@@ -31,7 +31,8 @@ entity DotProductArray is
 		NUM_BANDS        : positive := 16;
 		IN1_DATA_WIDTH   : positive := 16;
 		IN2_DATA_WIDTH   : positive := 32;
-		OUT_DATA_WIDTH   : positive := 32
+		OUT_DATA_WIDTH   : positive := 32;
+		DP_DATA_SLIDER   : positive := 60
 	);
 	port (
 
@@ -48,7 +49,7 @@ end DotProductArray;
 
 architecture Behavioral of DotProductArray is
 
-	constant ACCUMULATOR_WIDTH: positive :=  (integer(ceil(log2(real(NUM_BANDS)))) + IN1_DATA_WIDTH + IN2_DATA_WIDTH - 1);
+	constant ACCUMULATOR_WIDTH: positive :=  (integer(ceil(log2(real(NUM_BANDS)))) + IN1_DATA_WIDTH + IN2_DATA_WIDTH );
 	
 	type DataOutType is array (0 to NUM_BANDS-1) of std_logic_vector(ACCUMULATOR_WIDTH-1 downto 0);
 	
@@ -103,7 +104,7 @@ begin
 	-- DATA OUT
 ---------------------------------------------------------------------------------		
 	
-	process (CLK, RESETN)
+	process (CLK)
 	begin
 		if (rising_edge (CLK)) then
 			if (RESETN = '0') then
@@ -119,7 +120,9 @@ begin
 				
 				
 					for i in 0 to NUM_BANDS-1 loop
-						COLUMN_OUT(i) <= DATA_OUT(i)(ACCUMULATOR_WIDTH-1  downto ACCUMULATOR_WIDTH-OUT_DATA_WIDTH);
+						--COLUMN_OUT(i) <= DATA_OUT(i)(ACCUMULATOR_WIDTH-1  downto ACCUMULATOR_WIDTH-OUT_DATA_WIDTH);
+						--COLUMN_OUT(i) <= DATA_OUT(i)(60  downto 13);
+						COLUMN_OUT(i) <= DATA_OUT(i)(DP_DATA_SLIDER  downto DP_DATA_SLIDER - OUT_DATA_WIDTH + 1);
 					end loop;
 					
 				end if;

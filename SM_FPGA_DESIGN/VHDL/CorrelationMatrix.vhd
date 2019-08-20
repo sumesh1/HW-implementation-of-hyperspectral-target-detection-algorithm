@@ -37,6 +37,7 @@ entity CorrelationMatrix is
 		RESETN           : in std_logic;
 		WRITE_ENABLE 	 : in std_logic;
 		COLUMN_NUMBER 	 : in std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
+		COLUMN_NUMBER_W	 : in std_logic_vector (integer(ceil(log2(real(NUM_BANDS))))-1 downto 0);
 		COLUMN_IN		 : in CorrMatrixColumn;
 		COLUMN_OUT	     : out CorrMatrixColumn
 		
@@ -57,7 +58,7 @@ begin
 	COLUMN_OUT <= CORR_MATRIX(to_integer(unsigned(COLUMN_NUMBER)));
 	
 
-	process (CLK, RESETN)
+	process (CLK)
 	begin
 		if (rising_edge (CLK)) then
 			if (RESETN = '0') then
@@ -68,7 +69,7 @@ begin
 			
 				if (WRITE_ENABLE = '1') then
 		
-					CORR_MATRIX(to_integer(unsigned(COLUMN_NUMBER))) <= COLUMN_IN;
+					CORR_MATRIX(to_integer(unsigned(COLUMN_NUMBER_W))) <= COLUMN_IN;
 				
 				end if;
 				
@@ -110,7 +111,7 @@ begin
 				
 					if (WRITE_ENABLE = '1') then
 					
-						CORR_MATRIX (to_integer(unsigned(COLUMN_NUMBER)))((i + 1) * CORRELATION_DATA_WIDTH - 1 downto i * CORRELATION_DATA_WIDTH) <= COLUMN_IN (i);
+						CORR_MATRIX (to_integer(unsigned(COLUMN_NUMBER_W)))((i + 1) * CORRELATION_DATA_WIDTH - 1 downto i * CORRELATION_DATA_WIDTH) <= COLUMN_IN (i);
 					
 					end if;
 				

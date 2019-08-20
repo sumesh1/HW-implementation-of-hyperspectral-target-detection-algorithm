@@ -22,7 +22,7 @@ library IEEE;
 use IEEE . STD_LOGIC_1164 . all;
 use ieee . numeric_std . all;
 
-entity dp_controller_sm is
+entity dp_controller_div is
 	generic (
 		V_LEN : integer := 16
 	);
@@ -33,9 +33,9 @@ entity dp_controller_sm is
 		p_rdy   : out std_logic;
 		clear  : out std_logic
 	);
-end dp_controller_sm;
+end dp_controller_div;
 
-architecture Behavioral of dp_controller_sm is
+architecture Behavioral of dp_controller_div is
 
 	signal counter : integer range 0 to V_LEN + 2;
 	signal out_rdy : std_logic;
@@ -49,7 +49,7 @@ begin
 
 	
 	
-	process (clk, reset_n)
+	process (clk)
 	begin
 		if (rising_edge (clk)) then
 			if (reset_n = '0') then

@@ -13,13 +13,13 @@
 -- Dependencies: Packet FIFO, does not use BRAM
 -- 
 -- Revision:
--- Revision 0.01 - File Created
+-- Revision 0.01 - File Created 
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
+use IEEE.NUMERIC_STD.all;   
 
 
 entity MasterOutput is

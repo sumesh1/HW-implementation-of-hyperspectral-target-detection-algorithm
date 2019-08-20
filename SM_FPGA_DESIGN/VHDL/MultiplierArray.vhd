@@ -37,8 +37,8 @@ entity MultiplierArray is
 		RESETN           : in std_logic;
 		ENABLE 			 : in std_logic;
 		IN1_COMPONENT	 : in std_logic_vector(IN1_DATA_WIDTH-1 downto 0);
-		IN2_COLUMN		 : in CorrMatrixColumn;
-		COLUMN_OUT	     : out CorrMatrixColumn;
+		IN2_COLUMN		 : in TempMatrixColumn;
+		COLUMN_OUT	     : out TempMultColumn;
 		DATA_VALID	     : out std_logic
 	
 	);
@@ -50,6 +50,9 @@ architecture Behavioral of MultiplierArray is
 
 begin
 
+
+
+
 ---------------------------------------------------------------------------------	 
 	-- product datapath
 ---------------------------------------------------------------------------------	
@@ -60,7 +63,7 @@ begin
 		generic map(
 			bit_depth_1 => IN1_DATA_WIDTH,
 			bit_depth_2 => IN2_DATA_WIDTH,
-			p_bit_width => OUT_DATA_WIDTH
+			p_bit_width => IN1_DATA_WIDTH + IN2_DATA_WIDTH
 		)
 		port map(
 			clk     => CLK,

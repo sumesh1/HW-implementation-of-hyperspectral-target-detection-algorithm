@@ -23,15 +23,21 @@ use IEEE.NUMERIC_STD.all;
 use IEEE.math_real.all;
 package td_package is
 
-	constant C_S_AXI_DATA_WIDTH     : integer  := 32;
-	constant C_S_AXI_ADDR_WIDTH     : integer  := 4;
-	constant NUM_BANDS              : positive := 16;
+	constant C_S_AXI_DATA_WIDTH     : integer  := 64;
+	constant C_S_AXI_ADDR_WIDTH     : integer  := 5;
+	constant NUM_BANDS              : positive := 126;
 	constant PIXEL_DATA_WIDTH       : positive := 16;
-	constant CORRELATION_DATA_WIDTH : positive := 32;
-	constant OUT_DATA_WIDTH         : positive := 32;
+	constant CORRELATION_DATA_WIDTH : positive := 35; 
+	constant OUT_DATA_WIDTH         : positive := 35;
 
-	type CorrMatrixColumn is array (0 to 16 - 1) of std_logic_vector(32 - 1 downto 0);
-	type CorrMatrixType is array (0 to 16 - 1) of CorrMatrixColumn;
+	type CorrMatrixColumn is array (0 to NUM_BANDS - 1) of std_logic_vector(CORRELATION_DATA_WIDTH - 1 downto 0);
+	type CorrMatrixType is array (0 to NUM_BANDS - 1) of CorrMatrixColumn;
+
+	type TempMatrixColumn is array (0 to NUM_BANDS - 1) of std_logic_vector(CORRELATION_DATA_WIDTH +7 - 1 downto 0);
+	type TempMatrixType is array (0 to NUM_BANDS - 1) of TempMatrixColumn;
+
+	type TempMultColumn is array (0 to NUM_BANDS - 1) of std_logic_vector(OUT_DATA_WIDTH + OUT_DATA_WIDTH + 7 - 1 downto 0);
+
 	--global variables for simulation and verification in MATLAB - only VHDL 2008
 	signal STEP1_RESULT       : CorrMatrixColumn;
 	signal STEP1_RESULT_VALID : std_logic;
@@ -50,24 +56,30 @@ package td_package is
 		STEP3_ENABLE_TD        : std_logic;
 
 		COMPONENT_WRITE_ENABLE : std_logic;
+		COMPONENT_TD_WRITE_ENABLE : std_logic;
 		COLUMN_WRITE_ENABLE    : std_logic;
 		TEMP_WRITE_ENABLE      : std_logic;
 
 		MULT_ARRAY_ENABLE      : std_logic;
 		DP_ARRAY_ENABLE		   : std_logic;
+		TD_DP_ST1_ENABLE	   : std_logic;
 
 		COLUMN_IN_SEL          : std_logic;
 		MULT_ARRAY_SEL         : std_logic;
-		DP_ARRAY_SEL		   : std_logic;
+		DP_ARRAY_SEL		   : std_logic_vector(1 downto 0);
 		DIV_SEL				   : std_logic; 
 		
+		COUNT_ST1              : std_logic;
 		COUNT_ST2              : std_logic;
 		COUNT_RS			   : std_logic;
 		DP_ARRAY_SAVE		   : std_logic;
 		
 
 		COMPONENT_NUMBER       : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
+		COMPONENT_TD_NUMBER    : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
 		COLUMN_NUMBER          : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
+		COLUMN_NUMBER_W        : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
+		TEMP_COLUMN_NUMBER     : std_logic_vector (integer(ceil(log2(real(NUM_BANDS)))) - 1 downto 0);
 
 	end record;
 
